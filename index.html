@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111317">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LiftMap">
+<title>LiftMap — progressão de carga</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     POSTHOG — cole aqui o token do seu projeto
+     (PostHog → Settings → Project → "Project token", começa com phc_)
+     ============================================================ -->
+<script>
+  window.LIFTMAP_POSTHOG = {
+    token: 'phc_COLE_SEU_TOKEN_AQUI',
+    api_host: 'https://us.i.posthog.com',   // use https://eu.i.posthog.com se criou o projeto na região EU
+  };
+  // GOOGLE DRIVE — cole o OAuth Client ID (Google Cloud → Google Auth platform → Clients), termina com .apps.googleusercontent.com
+  window.LIFTMAP_GOOGLE = {
+    client_id: 'COLE_SEU_CLIENT_ID_AQUI',
+  };
+</script>
+<script>
+  (function () {
+    var cfg = window.LIFTMAP_POSTHOG;
+    window.LIFTMAP_PH_ENABLED = !!(cfg && cfg.token && cfg.token.indexOf('phc_COLE') !== 0);
+    if (!window.LIFTMAP_PH_ENABLED) return;
+    // Snippet oficial do PostHog (carrega o posthog-js do CDN deles e enfileira chamadas até carregar)
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(cfg.token, {
+      api_host: cfg.api_host,
+      defaults: '2026-01-30',          // pacote de padrões recomendado (pageviews em mudança de URL, etc.)
+      person_profiles: 'identified_only',
+      capture_exceptions: true,        // Error tracking
+      session_recording: { maskAllInputs: false }, // cargas não são dados sensíveis; facilita assistir os replays
+    });
+  })();
+</script>
+
+<style>
+  :root{
+    --bg:#111317; --surface:#181b21; --surface-2:#1f232a; --line:#2a2f37; --line-2:#363c46;
+    --ink:#eef0f3; --ink-2:#a9b0bb; --ink-3:#737b88;
+    --accent:#ff8a3d; --accent-ink:#1a0f06; --accent-soft:rgba(255,138,61,.14);
+    --good:#4cc38a; --danger:#ef5f5f;
+    --muscle:#2b3038; --muscle-hover:#3a414c;
+    --h1:#4a2e1c; --h2:#7a3f17; --h3:#b4561a; --h4:#e8752a; --h5:#ffb07a;
+    --radius:14px; --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font:inherit;color:inherit}
+  h1,h2,h3{font-family:Archivo,Inter,sans-serif;margin:0;letter-spacing:-.01em}
+  .app{max-width:960px;margin:0 auto;padding:calc(12px + var(--safe-t)) 16px calc(96px + var(--safe-b))}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font:800 16px Archivo,system-ui,sans-serif}
+  .brand h1{font-size:20px;font-weight:800}
+  .brand small{display:block;color:var(--ink-3);font-size:12px;margin-top:-2px}
+  @media(max-width:480px){.brand small{display:none}}
+  .ss-head{display:flex;align-items:flex-start;gap:8px}.ss-head div{flex:1;min-width:0}
+  .ph-pill{white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;color:var(--ink-2)}
+  .ph-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+  .ph-pill.on .dot{background:var(--good)}
+
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(17,19,23,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 8px calc(6px + var(--safe-b))}
+  nav.tabs .inner{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:10px;color:var(--ink-3);text-decoration:none;font-size:11.5px;font-weight:600}
+  nav.tabs a svg{width:22px;height:22px}
+  nav.tabs a.active{color:var(--accent);background:var(--accent-soft)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 12px}
+  .section-title h2{font-size:22px}
+  @media(max-width:480px){.section-title h2{font-size:19px}.seg button{padding:5px 8px}}
+  .muted{color:var(--ink-2)} .faint{color:var(--ink-3)}
+  .grid{display:grid;gap:12px}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .spacer{flex:1}
+
+  .btn{border:1px solid var(--line-2);background:var(--surface-2);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .btn:hover{border-color:var(--ink-3)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent}
+  .btn.danger{color:var(--danger);border-color:rgba(239,95,95,.4);background:transparent}
+  .btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+  .btn.icon{padding:6px 8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface-2);font-size:13px;cursor:pointer;user-select:none}
+  .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .chip.sec.on{background:rgba(255,176,122,.08);border-color:#8a5a3a;color:#ffc59c}
+  .tag{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
+  .tag.pr{background:rgba(76,195,138,.12);border-color:rgba(76,195,138,.4);color:var(--good)}
+
+  input[type=text],input[type=number],input[type=date],select,textarea{background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:9px 11px;width:100%;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  label.f{display:grid;gap:6px;font-size:13px;color:var(--ink-2);font-weight:500}
+
+  /* ---------- mapa ---------- */
+  .map-layout{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:820px){.map-layout{grid-template-columns:1.1fr 1fr}}
+  .bodies{display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:start}
+  .bodies figure{margin:0;text-align:center}
+  .bodies figcaption{font-size:12px;color:var(--ink-3);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+  .bodies svg{width:100%;max-height:440px}
+  .body-base{fill:#1c2026}
+  .m{fill:var(--muscle);stroke:var(--bg);stroke-width:1.6;cursor:pointer;transition:fill .15s}
+  .m:hover{filter:brightness(1.35)}
+  .m.sel{stroke:var(--ink);stroke-width:2}
+  .m[data-h="1"]{fill:var(--h1)} .m[data-h="2"]{fill:var(--h2)} .m[data-h="3"]{fill:var(--h3)} .m[data-h="4"]{fill:var(--h4)} .m[data-h="5"]{fill:var(--h5)}
+  .legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3);justify-content:center;margin-top:8px}
+  .legend .scale{display:flex;gap:2px}
+  .legend .scale i{width:18px;height:10px;border-radius:3px;display:block}
+  .seg{display:inline-flex;background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:3px}
+  .seg button{white-space:nowrap;border:0;background:transparent;padding:5px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--ink-2);font-weight:600}
+  .seg button.on{background:var(--surface-2);color:var(--ink)}
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .stat b{display:block;font:800 22px Archivo,system-ui,sans-serif}
+  .stat span{font-size:12px;color:var(--ink-3)}
+
+  .ex-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .ex-row:first-child{border-top:0}
+  .ex-row .name{font-weight:600}
+  .ex-row .meta{font-size:12.5px;color:var(--ink-3)}
+  .ex-row .load{font:700 16px Archivo,system-ui,sans-serif;white-space:nowrap}
+  .clickable{cursor:pointer}
+  .clickable:hover .name{color:var(--accent)}
+
+  /* ---------- treinos ---------- */
+  .wk{display:grid;gap:8px}
+  .wk-head{display:flex;align-items:center;gap:10px}
+  .wk-head h3{font-size:17px}
+  .wk-items{display:grid;gap:4px;font-size:13.5px}
+  .wk-items div{display:flex;justify-content:space-between;gap:8px;color:var(--ink-2)}
+  .wk-items b{color:var(--ink);font-weight:600}
+
+  /* ---------- modal ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+  @media(min-width:700px){.scrim{align-items:center}}
+  .modal{background:var(--surface);border:1px solid var(--line-2);width:100%;max-width:620px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + var(--safe-b))}
+  @media(min-width:700px){.modal{border-radius:18px}}
+  .modal-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .modal-head h2{font-size:20px;flex:1}
+  .modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;position:sticky;bottom:-18px;background:var(--surface);padding:10px 0 0}
+  .set-row{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+  .set-inputs{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}
+  .stepper{display:flex;align-items:stretch}
+  .stepper input{border-radius:0;text-align:center;min-width:0}
+  .stepper button{border:1px solid var(--line-2);background:var(--bg);padding:0 10px;cursor:pointer;font-weight:700}
+  .stepper button:first-child{border-radius:10px 0 0 10px;border-right:0}
+  .stepper button:last-child{border-radius:0 10px 10px 0;border-left:0}
+  .mini{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+
+  /* ---------- gráfico ---------- */
+  .chart-wrap{position:relative}
+  .chart-wrap svg{width:100%;height:auto;display:block}
+  .tip{position:absolute;pointer-events:none;background:#0b0c0f;border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;font-size:12.5px;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .1s}
+  .tip b{font-family:Archivo}
+  table.hist{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.hist th{color:var(--ink-3);font-weight:500;text-align:left;font-size:12px;padding:6px 4px;border-bottom:1px solid var(--line)}
+  table.hist td{padding:8px 4px;border-bottom:1px solid var(--line)}
+  table.hist td.num{font-variant-numeric:tabular-nums}
+
+  /* ---------- toast / debug ---------- */
+  .toast{position:fixed;left:50%;bottom:calc(88px + var(--safe-b));transform:translateX(-50%);background:#0b0c0f;border:1px solid var(--line-2);padding:10px 16px;border-radius:12px;z-index:60;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .celebrate{position:fixed;inset:0;z-index:70;display:grid;place-items:center;pointer-events:none}
+  .celebrate .burst{background:var(--accent);color:var(--accent-ink);padding:22px 28px;border-radius:20px;text-align:center;font-family:Archivo;animation:pop .5s ease-out;box-shadow:0 20px 60px rgba(255,138,61,.35)}
+  .celebrate .burst b{display:block;font-size:30px;font-weight:800}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+  .dbg-ev{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;border-top:1px solid var(--line);padding:8px 0}
+  .dbg-ev b{color:var(--accent)}
+  .dbg-ev pre{margin:4px 0 0;color:var(--ink-2);white-space:pre-wrap;word-break:break-word}
+  .empty{text-align:center;padding:28px 16px;color:var(--ink-2)}
+  .empty h3{color:var(--ink);margin-bottom:6px}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">LM</div>
+      <div><h1>LiftMap</h1><small>progressão de carga por grupo muscular</small></div>
+    </div>
+    <div class="row" style="flex-wrap:nowrap;gap:6px">
+    <button class="ph-pill" id="cloudBtn" data-action="open-backup" title="Backup no Google Drive" aria-label="Backup no Google Drive"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.4 4.5 4.5 0 0 0 7 18Z"/></svg><span class="dot" id="cloudDot"></span></button>
+    <button class="ph-pill" id="phPill" data-action="open-debug" title="Eventos enviados ao PostHog"><span class="dot"></span><span id="phPillText">PostHog</span></button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<nav class="tabs">
+  <div class="inner">
+    <a href="#mapa" data-tab="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="4.5" r="2.3"/><path d="M7 9.5h10M12 9v6M12 15l-3 6M12 15l3 6M7 9.5l-2 5M17 9.5l2 5"/></svg>Mapa</a>
+    <a href="#treinos" data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>Treinos</a>
+    <a href="#historico" data-tab="historico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Progresso</a>
+    <a href="#exercicios" data-tab="exercicios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h9"/></svg>Exercícios</a>
+  </div>
+</nav>
+
+<div id="layer"></div>
+
+<script>
+/* =================================================================
+   LiftMap — app de uma página, sem build, dados no localStorage.
+   Seções: 1) dados  2) analytics (PostHog)  3) cálculos
+           4) mapa corporal SVG  5) views  6) modais  7) eventos/rotas
+   ================================================================= */
+const APP_VERSION = '1.3.0';
+const STORE_KEY = 'liftmap:v1';
+
+/* ---------------- 1) DADOS ---------------- */
+const MUSCLES = {
+  chest:{pt:'Peito', side:'front'}, shoulders:{pt:'Ombros', side:'both'}, biceps:{pt:'Bíceps', side:'front'},
+  forearms:{pt:'Antebraços', side:'both'}, abs:{pt:'Abdômen', side:'front'}, obliques:{pt:'Oblíquos', side:'front'},
+  quads:{pt:'Quadríceps', side:'front'}, adductors:{pt:'Adutores', side:'front'}, calves:{pt:'Panturrilhas', side:'both'},
+  traps:{pt:'Trapézio', side:'back'}, back:{pt:'Costas (dorsais)', side:'back'}, triceps:{pt:'Tríceps', side:'back'},
+  lower_back:{pt:'Lombar', side:'back'}, glutes:{pt:'Glúteos', side:'back'}, hamstrings:{pt:'Posteriores de coxa', side:'back'},
+};
+const MUSCLE_ORDER = ['chest','shoulders','biceps','triceps','forearms','traps','back','lower_back','abs','obliques','glutes','quads','adductors','hamstrings','calves'];
+
+const DEFAULT_EXERCISES = [
+  ['Supino reto (barra)', ['chest'], ['shoulders','triceps']],
+  ['Supino inclinado (halteres)', ['chest','shoulders'], ['triceps']],
+  ['Crucifixo / peck deck', ['chest'], []],
+  ['Desenvolvimento (halteres)', ['shoulders'], ['triceps']],
+  ['Elevação lateral', ['shoulders'], []],
+  ['Puxada frontal (pulldown)', ['back'], ['biceps']],
+  ['Remada baixa (cabo)', ['back'], ['biceps','traps']],
+  ['Remada curvada (barra)', ['back'], ['biceps','lower_back']],
+  ['Barra fixa', ['back'], ['biceps']],
+  ['Encolhimento', ['traps'], []],
+  ['Rosca direta', ['biceps'], ['forearms']],
+  ['Rosca martelo', ['biceps','forearms'], []],
+  ['Tríceps corda (polia)', ['triceps'], []],
+  ['Tríceps testa', ['triceps'], []],
+  ['Agachamento livre', ['quads','glutes'], ['hamstrings','lower_back','adductors']],
+  ['Leg press 45°', ['quads','glutes'], ['hamstrings','adductors']],
+  ['Cadeira extensora', ['quads'], []],
+  ['Mesa flexora', ['hamstrings'], ['calves']],
+  ['Stiff', ['hamstrings','glutes'], ['lower_back']],
+  ['Levantamento terra', ['lower_back','glutes','hamstrings'], ['traps','quads','forearms','back']],
+  ['Cadeira adutora', ['adductors'], []],
+  ['Elevação pélvica (hip thrust)', ['glutes'], ['hamstrings']],
+  ['Panturrilha em pé', ['calves'], []],
+  ['Abdominal na polia', ['abs'], ['obliques']],
+  ['Prancha', ['abs'], ['obliques','lower_back']],
+];
+
+const uid = (p='id') => p + '_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+const todayISO = () => new Date().toISOString().slice(0,10);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtKg = n => (Math.round(n*10)/10).toLocaleString('pt-BR') + ' kg';
+const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+const fmtDateLong = iso => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+
+function freshState(){
+  return {
+    version:1,
+    user:{ id: uid('u'), name:'' },
+    exercises: DEFAULT_EXERCISES.map(([name,p,s]) => ({ id:'ex_'+slug(name), name, primary:p, secondary:s, custom:false })),
+    workouts: [],
+    sessions: [],   // {id, date, workoutId|null, startedAt, finishedAt, entries:[{exerciseId, load, reps, sets}]}
+  };
+}
+let memoryOnly = false;
+function migrate(s){ s.settings = { autoBackup:true, lastBackupAt:null, driveFileId:null, driveConnectedOnce:false, backupPending:false,
+  onboarded: !!((s.sessions && s.sessions.length) || (s.user && s.user.name)), ...(s.settings||{}) }; return s; }
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ const s = JSON.parse(raw); if(s && s.version===1) return migrate(s); }
+  }catch(e){ memoryOnly = true; }
+  return migrate(freshState());
+}
+let S = load();
+function save(){ if(memoryOnly) return; try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){ memoryOnly = true; } }
+
+const exById = id => S.exercises.find(e => e.id === id);
+const wkById = id => S.workouts.find(w => w.id === id);
+
+/* ---------------- 2) ANALYTICS (PostHog) ----------------
+   Toda captura passa por track() para: (a) manter um padrão de nomes
+   objeto_verbo no passado, (b) alimentar o painel de debug local,
+   (c) não quebrar nada se o PostHog não estiver configurado. */
+const PH = () => (window.LIFTMAP_PH_ENABLED && window.posthog) ? window.posthog : null;
+const eventLog = [];
+function track(event, props={}){
+  eventLog.unshift({ event, props, at:new Date().toLocaleTimeString('pt-BR') });
+  if(eventLog.length > 60) eventLog.pop();
+  const ph = PH(); if(ph) ph.capture(event, props);
+  if(document.getElementById('dbgList')) renderDebugList();
+}
+function syncPersonProps(){
+  const ph = PH(); if(!ph) return;
+  ph.setPersonProperties({
+    workouts_count: S.workouts.length,
+    sessions_count: S.sessions.length,
+    custom_exercises_count: S.exercises.filter(e=>e.custom).length,
+    last_session_date: S.sessions.length ? S.sessions[S.sessions.length-1].date : null,
+  });
+}
+/* Identidade: o distinct_id é S.user.id (aleatório, gerado no 1º uso e levado no backup).
+   O nome é só uma PROPRIEDADE da pessoa — dois "Lucas" continuam sendo duas pessoas. */
+function identifyUser(){
+  const ph = PH(); if(!ph || !S.user.name) return;
+  ph.identify(S.user.id, { name:S.user.name }, { first_seen_app_version: APP_VERSION });  // $set, $set_once
+  syncPersonProps();
+}
+function initAnalytics(){
+  const ph = PH();
+  const pill = document.getElementById('phPill');
+  document.getElementById('phPillText').textContent = ph ? 'PostHog ativo' : 'PostHog off';
+  pill.classList.toggle('on', !!ph);
+  if(!ph) return;
+  ph.register({ app_version: APP_VERSION, storage_mode: memoryOnly ? 'memory' : 'localStorage' }); // super properties
+  identifyUser();
+  ph.onFeatureFlags(() => { flags.prCelebration = !!ph.isFeatureEnabled('pr-celebration'); });
+}
+const flags = { prCelebration:false };
+
+/* ---------------- 2b) BACKUP NO GOOGLE DRIVE ----------------
+   Google Identity Services (token model) + Drive API v3, escopo drive.file:
+   o app só enxerga os arquivos que ele mesmo criou no Drive do usuário.
+   O token fica só na memória (expira em ~1h); nada de senha ou client secret. */
+const GCFG = window.LIFTMAP_GOOGLE || {};
+const DRIVE_ENABLED = !!(GCFG.client_id && GCFG.client_id.indexOf('COLE') !== 0);
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const BACKUP_NAME = 'LiftMap — backup.json';
+const drive = { token:null, expiresAt:0, client:null, busy:false, pending:null };
+
+function loadGIS(){
+  if(!DRIVE_ENABLED || window.google?.accounts?.oauth2) return initTokenClient();
+  const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.defer = true;
+  s.onload = initTokenClient; s.onerror = () => { drive.loadError = true; };
+  document.head.appendChild(s);
+}
+function initTokenClient(){
+  if(!window.google?.accounts?.oauth2 || drive.client) return;
+  drive.client = google.accounts.oauth2.initTokenClient({
+    client_id: GCFG.client_id, scope: DRIVE_SCOPE,
+    callback: resp => {
+      const job = drive.pending; drive.pending = null;
+      if(resp.error){ track('drive_auth_failed', { error: resp.error }); toast('Não foi possível conectar ao Google'); return; }
+      drive.token = resp.access_token; drive.expiresAt = Date.now() + (resp.expires_in - 60) * 1000;
+      if(!S.settings.driveConnectedOnce){ S.settings.driveConnectedOnce = true; save(); track('drive_connected'); }
+      job && job();
+    },
+    error_callback: err => { drive.pending = null; track('drive_auth_failed', { error: err?.type || 'popup' }); if(err?.type !== 'popup_closed') toast('Pop-up bloqueado ou fechado'); },
+  });
+}
+const driveTokenValid = () => drive.token && Date.now() < drive.expiresAt;
+// Chame SEMPRE a partir de um clique: o Google abre um pop-up de consentimento.
+function withDrive(job){
+  if(!DRIVE_ENABLED){ toast('Backup no Drive não configurado'); return; }
+  if(driveTokenValid()) return job();
+  if(!drive.client){ toast(drive.loadError ? 'Sem conexão com o Google' : 'Carregando Google… tente de novo'); loadGIS(); return; }
+  drive.pending = job;
+  drive.client.requestAccessToken({ prompt: S.settings.driveConnectedOnce ? '' : 'consent' });
+}
+async function gapi(path, opts={}){
+  const r = await fetch('https://www.googleapis.com' + path, { ...opts, headers:{ Authorization:'Bearer ' + drive.token, ...(opts.headers||{}) } });
+  if(r.status === 401){ drive.token = null; throw new Error('auth'); }
+  if(!r.ok) throw new Error('http_' + r.status);
+  return r.status === 204 ? null : (opts.raw ? r.text() : r.json());
+}
+async function findBackupFile(){
+  const q = encodeURIComponent("appProperties has { key='liftmap' and value='backup' } and trashed=false");
+  const res = await gapi(`/drive/v3/files?q=${q}&spaces=drive&orderBy=modifiedTime desc&fields=files(id,name,modifiedTime,size)`);
+  return res.files && res.files[0] || null;
+}
+function backupPayload(){ return JSON.stringify({ ...S, exportedAt:new Date().toISOString(), appVersion:APP_VERSION }); }
+async function uploadBackup(trigger){
+  if(drive.busy) return; drive.busy = true; renderDriveStatus();
+  const body = backupPayload();
+  try{
+    let file = S.settings.driveFileId ? { id:S.settings.driveFileId } : await findBackupFile();
+    if(file){
+      try{ await gapi(`/upload/drive/v3/files/${file.id}?uploadType=media`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body }); }
+      catch(e){ if(e.message !== 'http_404') throw e; file = null; }   // arquivo apagado no Drive → cria de novo
+    }
+    if(!file){
+      const boundary = 'liftmap' + Date.now();
+      const meta = { name:BACKUP_NAME, mimeType:'application/json', appProperties:{ liftmap:'backup' } };
+      const multipart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`;
+      file = await gapi('/upload/drive/v3/files?uploadType=multipart&fields=id', { method:'POST', headers:{'Content-Type':`multipart/related; boundary=${boundary}`}, body:multipart });
+    }
+    S.settings.driveFileId = file.id; S.settings.lastBackupAt = Date.now(); S.settings.backupPending = false; save();
+    track('backup_uploaded', { trigger, sessions_count:S.sessions.length, workouts_count:S.workouts.length, size_kb: Math.round(body.length/1024) });
+    if(trigger === 'manual') toast('Backup salvo no Google Drive ☁️');
+  }catch(e){
+    track('backup_failed', { trigger, stage:'upload', error:e.message });
+    if(trigger === 'manual') toast(e.message === 'auth' ? 'Sessão do Google expirou — toque de novo' : 'Falha ao salvar no Drive');
+    else S.settings.backupPending = true, save();
+  }finally{ drive.busy = false; renderDriveStatus(); }
+}
+async function startRestore(){
+  drive.busy = true; renderDriveStatus();
+  try{
+    const file = await findBackupFile();
+    if(!file){ track('backup_restore_viewed', { found:false }); toast('Nenhum backup do LiftMap neste Google Drive'); return; }
+    const d = JSON.parse(await gapi(`/drive/v3/files/${file.id}?alt=media`, { raw:true }));
+    if(!d || d.version !== 1 || !Array.isArray(d.sessions)) throw new Error('format');
+    track('backup_restore_viewed', { found:true, backup_sessions:d.sessions.length, local_sessions:S.sessions.length });
+    const when = new Date(d.exportedAt || file.modifiedTime).toLocaleString('pt-BR', { dateStyle:'medium', timeStyle:'short' });
+    openModal(`<div class="modal-head"><h2>Restaurar do Google Drive</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+      <div class="stat-row" style="margin-bottom:12px"><div class="stat"><b>${d.sessions.length}</b><span>sessões</span></div><div class="stat"><b>${d.workouts.length}</b><span>treinos</span></div><div class="stat"><b>${d.exercises.filter(e=>e.custom).length}</b><span>exercícios seus</span></div></div>
+      <p class="muted">Backup de <b>${when}</b>.${S.sessions.length ? ` Este aparelho tem <b>${S.sessions.length} sessões</b>, que serão <b>substituídas</b>.` : ''}</p>
+      <div class="modal-foot"><button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="doRestore">Restaurar neste aparelho</button></div>`,
+      m => m.querySelector('#doRestore').onclick = () => {
+        const settings = { ...S.settings, driveFileId:file.id, lastBackupAt:Date.parse(d.exportedAt || file.modifiedTime) || Date.now() };
+        delete d.exportedAt; delete d.appVersion;
+        S = migrate(d); S.settings = { ...S.settings, ...settings }; save();
+        // mesmo user.id do backup → o PostHog junta este aparelho à mesma pessoa
+        identifyUser(); syncPersonProps();
+        track('backup_restored', { sessions_count:S.sessions.length, workouts_count:S.workouts.length });
+        closeModal(); toast('Dados restaurados ✅'); location.hash = '#mapa'; route();
+      });
+  }catch(e){
+    track('backup_failed', { trigger:'manual', stage:'restore', error:e.message });
+    toast(e.message === 'auth' ? 'Sessão do Google expirou — toque de novo' : 'Falha ao ler o backup');
+  }finally{ drive.busy = false; renderDriveStatus(); }
+}
+function autoBackupAfterChange(){
+  if(!DRIVE_ENABLED || !S.settings.autoBackup || !S.settings.driveFileId) return;
+  if(driveTokenValid()) uploadBackup('auto');
+  else { S.settings.backupPending = true; save(); renderDriveStatus(); }   // sem token: lembra de salvar no próximo toque
+}
+function driveCard(){
+  if(!DRIVE_ENABLED) return `<div class="card" style="margin-top:16px"><div class="mini" style="margin-bottom:8px">Backup no Google Drive</div>
+    <p class="muted" style="margin:0">Ainda não configurado. Cole o Client ID do Google Cloud no topo do <code>index.html</code> (o guia explica o passo a passo).</p></div>`;
+  return `<div class="card" style="margin-top:16px" id="driveCard">${driveCardInner()}</div>`;
+}
+function driveCardInner(){
+  const st = S.settings, last = st.lastBackupAt ? new Date(st.lastBackupAt).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : null;
+  return `<div class="row" style="margin-bottom:8px"><div class="mini" style="flex:1">Backup no Google Drive</div>
+      <span class="tag ${driveTokenValid()?'pr':''}">${drive.busy ? 'sincronizando…' : driveTokenValid() ? 'conectado' : 'desconectado'}</span></div>
+    <p class="muted" style="margin:0 0 10px">${last ? `Último backup: <b>${last}</b>.` : 'Nenhum backup ainda.'}${st.backupPending ? ' <span style="color:var(--accent)">Há treinos novos sem backup.</span>' : ''} O arquivo fica no seu Drive como “${BACKUP_NAME}”; para trocar de aparelho, abra o LiftMap no novo e toque em Restaurar.</p>
+    <div class="row">
+      <button class="btn sm primary" data-action="drive-backup" ${drive.busy?'disabled':''}>Salvar no Drive agora</button>
+      <button class="btn sm" data-action="drive-restore" ${drive.busy?'disabled':''}>Restaurar do Drive</button>
+      <label class="row" style="font-size:13px;color:var(--ink-2);cursor:pointer;gap:6px"><input type="checkbox" data-action="drive-auto" ${st.autoBackup?'checked':''} style="width:auto"> backup automático após cada treino</label>
+    </div>`;
+}
+function renderDriveStatus(){
+  const c = document.getElementById('driveCard'); if(c) c.innerHTML = driveCardInner();
+  const dot = document.getElementById('cloudDot'); if(!dot) return;
+  dot.style.background = !DRIVE_ENABLED ? 'var(--ink-3)' : S.settings.backupPending ? 'var(--accent)' : S.settings.lastBackupAt ? 'var(--good)' : 'var(--ink-3)';
+}
+function openBackup(){
+  openModal(`<div class="modal-head"><h2>Backup</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    ${DRIVE_ENABLED ? `<div id="driveCard">${driveCardInner()}</div>` : driveCard().replace('margin-top:16px','')}
+    <div class="row" style="margin-top:16px"><button class="btn sm ghost" data-action="export">Exportar arquivo .json</button></div>`);
+  track('backup_panel_opened', { drive_enabled:DRIVE_ENABLED, has_backup: !!S.settings.lastBackupAt });
+}
+
+
+/* ---------------- 3) CÁLCULOS ---------------- */
+const e1rm = (load, reps) => reps <= 1 ? load : load * (1 + reps/30);  // fórmula de Epley
+function sortedSessions(){ return [...S.sessions].sort((a,b) => a.date.localeCompare(b.date) || (a.startedAt||0)-(b.startedAt||0)); }
+function historyFor(exId){
+  const out = [];
+  for(const s of sortedSessions()) for(const e of s.entries) if(e.exerciseId === exId) out.push({ ...e, date:s.date, sessionId:s.id });
+  return out;
+}
+function lastEntry(exId){ const h = historyFor(exId); return h[h.length-1] || null; }
+function bestLoad(exId, exceptSessionId){
+  let best = 0; for(const h of historyFor(exId)) if(h.sessionId !== exceptSessionId) best = Math.max(best, +h.load||0); return best;
+}
+/* Faixas de repetição: cada registro cai numa faixa pelo nº de reps da série.
+   Ajuste os limites aqui se quiser outras faixas. */
+const REP_BANDS = [
+  { id:'max',    pt:'Máximo',       short:'1RM',  min:1,  max:1 },
+  { id:'low',    pt:'Baixo volume', short:'2–5',  min:2,  max:5 },
+  { id:'midlow', pt:'Médio-baixo',  short:'6–8',  min:6,  max:8 },
+  { id:'normal', pt:'Normal',       short:'9–12', min:9,  max:12 },
+  { id:'high',   pt:'Alto volume',  short:'13+',  min:13, max:Infinity },
+];
+const bandOf = reps => REP_BANDS.find(b => +reps >= b.min && +reps <= b.max) || REP_BANDS[REP_BANDS.length-1];
+const bandById = id => REP_BANDS.find(b => b.id === id);
+const inBand = (e, band) => !band || band === 'all' || bandOf(e.reps).id === band;
+// melhor carga por faixa: { low:{load,reps,date}, normal:{...} }
+function bestByBand(exId, exceptSessionId){
+  const out = {};
+  for(const h of historyFor(exId)){ if(h.sessionId === exceptSessionId) continue;
+    const b = bandOf(h.reps).id; if(!out[b] || +h.load > out[b].load || (+h.load === out[b].load && +h.reps > out[b].reps)) out[b] = { load:+h.load, reps:+h.reps, date:h.date }; }
+  return out;
+}
+function bandChips(exId, focus){
+  const bb = bestByBand(exId);
+  return REP_BANDS.filter(b => bb[b.id]).map(b => `<span class="tag" style="${focus===b.id?'border-color:var(--accent);color:var(--accent)':''}">${b.short} · ${fmtKg(bb[b.id].load)}</span>`).join(' ');
+}
+function muscleVolume(days, band='all'){
+  const since = new Date(); since.setDate(since.getDate() - days + 1);
+  const sinceISO = since.toISOString().slice(0,10);
+  const vol = {}; MUSCLE_ORDER.forEach(m => vol[m] = 0);
+  for(const s of S.sessions){ if(s.date < sinceISO) continue;
+    for(const e of s.entries){ const ex = exById(e.exerciseId); if(!ex || !inBand(e, band)) continue;
+      const sets = +e.sets||0;   // séries efetivas por músculo (primário = 1, secundário = 0,5)
+      ex.primary.forEach(m => vol[m] += sets);
+      ex.secondary.forEach(m => vol[m] += sets*0.5);
+    } }
+  return vol;
+}
+function heatLevel(v, max){ if(!v) return 0; const r = v/max; return r>.8?5 : r>.6?4 : r>.4?3 : r>.2?2 : 1; }
+
+/* ---------------- 4) MAPA CORPORAL (SVG) ----------------
+   viewBox 200x400; cada músculo é desenhado no lado esquerdo e espelhado. */
+const mirror = d => `<g transform="translate(200,0) scale(-1,1)">${d}</g>`;
+function muscleShape(key, inner){ return `<g class="m-group" data-m="${key}">${inner}${mirror(inner)}</g>`; }
+function bodyBase(){
+  return `
+  <g class="body-base">
+    <ellipse cx="100" cy="30" rx="17" ry="21"/>
+    <rect x="91" y="48" width="18" height="16" rx="5"/>
+    <path d="M64 66 Q100 56 136 66 L142 100 Q136 140 128 176 L72 176 Q64 140 58 100 Z"/>
+    <path d="M72 172 L100 180 L128 172 L130 250 L120 352 L106 352 L102 260 L98 260 L94 352 L80 352 L70 250 Z"/>
+    <path d="M56 88 Q44 120 42 176 L52 178 Q60 130 66 96 Z"/><path d="M144 88 Q156 120 158 176 L148 178 Q140 130 134 96 Z"/>
+    <ellipse cx="46" cy="186" rx="7" ry="11"/><ellipse cx="154" cy="186" rx="7" ry="11"/>
+    <ellipse cx="86" cy="360" rx="10" ry="7"/><ellipse cx="114" cy="360" rx="10" ry="7"/>
+  </g>`;
+}
+function frontSVG(){
+  return `<svg viewBox="0 0 200 372" role="img" aria-label="Corpo — vista frontal">${bodyBase()}
+    ${muscleShape('shoulders', `<path class="m" data-m="shoulders" d="M64 68 Q52 70 50 86 Q52 98 58 100 Q64 84 76 74 Z"/>`)}
+    ${muscleShape('chest', `<path class="m" data-m="chest" d="M99 70 L80 72 Q68 80 66 96 Q76 110 99 104 Z"/>`)}
+    ${muscleShape('biceps', `<path class="m" data-m="biceps" d="M56 102 Q50 116 50 134 L60 136 Q66 118 66 104 Z"/>`)}
+    ${muscleShape('forearms', `<path class="m" data-m="forearms" d="M49 138 Q44 156 44 176 L52 177 Q58 158 60 140 Z"/>`)}
+    ${muscleShape('abs', `<path class="m" data-m="abs" d="M99 108 L88 110 Q86 140 90 166 L99 168 Z"/>`)}
+    ${muscleShape('obliques', `<path class="m" data-m="obliques" d="M85 110 Q74 112 70 120 Q74 148 76 170 L88 170 Q83 140 85 110 Z"/>`)}
+    ${muscleShape('quads', `<path class="m" data-m="quads" d="M74 180 Q68 214 72 256 L84 262 Q92 246 94 222 Q92 196 86 182 Z"/>`)}
+    ${muscleShape('adductors', `<path class="m" data-m="adductors" d="M89 184 Q96 200 97 230 L99 232 L99 186 Z"/>`)}
+    ${muscleShape('calves', `<path class="m" data-m="calves" d="M76 272 Q72 300 80 340 L88 340 Q94 300 90 272 Z"/>`)}
+  </svg>`;
+}
+function backSVG(){
+  return `<svg viewBox="0 0 200 372" role="img" aria-label="Corpo — vista posterior">${bodyBase()}
+    ${muscleShape('traps', `<path class="m" data-m="traps" d="M99 54 L90 62 Q80 66 74 72 Q88 78 99 100 Z"/>`)}
+    ${muscleShape('shoulders', `<path class="m" data-m="shoulders" d="M64 68 Q52 70 50 86 Q52 98 58 100 Q64 84 72 74 Z"/>`)}
+    ${muscleShape('back', `<path class="m" data-m="back" d="M98 104 Q86 80 74 76 Q66 84 66 98 Q72 124 90 140 L98 140 Z"/>`)}
+    ${muscleShape('triceps', `<path class="m" data-m="triceps" d="M56 102 Q50 116 50 134 L60 136 Q66 118 66 104 Z"/>`)}
+    ${muscleShape('forearms', `<path class="m" data-m="forearms" d="M49 138 Q44 156 44 176 L52 177 Q58 158 60 140 Z"/>`)}
+    ${muscleShape('lower_back', `<path class="m" data-m="lower_back" d="M99 144 L88 144 Q86 156 88 170 L99 170 Z"/>`)}
+    ${muscleShape('glutes', `<path class="m" data-m="glutes" d="M99 174 L80 172 Q70 180 72 198 Q82 212 99 206 Z"/>`)}
+    ${muscleShape('hamstrings', `<path class="m" data-m="hamstrings" d="M74 210 Q70 236 74 262 L86 264 Q94 240 96 212 Z"/>`)}
+    ${muscleShape('calves', `<path class="m" data-m="calves" d="M76 270 Q70 290 76 318 Q84 330 90 318 Q94 292 90 270 Z"/>`)}
+  </svg>`;
+}
+
+/* ---------------- 5) VIEWS ---------------- */
+const ui = { range:7, selected:null, band:'all' };
+const $view = () => document.getElementById('view');
+
+function viewMapa(){
+  const vol = muscleVolume(ui.range, ui.band);
+  const max = Math.max(1, ...Object.values(vol));
+  const bandLabel = ui.band === 'all' ? '' : ` · ${bandById(ui.band).short} reps`;
+  const weekSessions = S.sessions.filter(s => { const d=new Date(); d.setDate(d.getDate()-6); return s.date >= d.toISOString().slice(0,10); });
+  const prs = countPRs(ui.range, ui.band);
+  const sel = ui.selected;
+  $view().innerHTML = `
+    <div class="section-title"><h2>Mapa de treino</h2>
+      <div class="seg" role="tablist" aria-label="Período">
+        ${[7,30,90].map(d=>`<button class="${ui.range===d?'on':''}" data-action="range" data-days="${d}">${d} dias</button>`).join('')}
+      </div>
+    </div>
+    ${S.sessions.length===0 ? onboardingCard() : ''}
+    <div class="row" style="margin:-2px 0 12px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px" role="tablist" aria-label="Faixa de repetições">
+      <span class="mini" style="white-space:nowrap">Faixa</span>
+      <span class="chip ${ui.band==='all'?'on':''}" data-action="band" data-band="all">Todas</span>
+      ${REP_BANDS.map(b=>`<span class="chip ${ui.band===b.id?'on':''}" data-action="band" data-band="${b.id}" title="${b.pt}" style="white-space:nowrap">${b.short}</span>`).join('')}
+    </div>
+    <div class="map-layout">
+      <div class="card">
+        <div class="bodies"><figure>${frontSVG()}<figcaption>Frente</figcaption></figure><figure>${backSVG()}<figcaption>Costas</figcaption></figure></div>
+        <div class="legend"><span>menos séries</span><span class="scale">${[0,1,2,3,4,5].map(i=>`<i style="background:var(${i?'--h'+i:'--muscle'})"></i>`).join('')}</span><span>mais séries</span></div>
+      </div>
+      <div class="grid" style="align-content:start">
+        <div class="stat-row">
+          <div class="stat"><b>${weekSessions.length}</b><span>treinos (7d)</span></div>
+          <div class="stat"><b>${Math.round(Object.values(vol).reduce((a,b)=>a+b,0))}</b><span>séries (${ui.range}d${bandLabel})</span></div>
+          <div class="stat"><b>${prs}</b><span>recordes (${ui.range}d${bandLabel})</span></div>
+        </div>
+        <div class="card" id="musclePanel">${sel ? musclePanel(sel, vol[sel]) : `
+          <div class="empty" style="padding:16px 8px"><h3>Toque num músculo</h3>Veja os exercícios daquela região, sua carga atual e o recorde.</div>`}
+        </div>
+      </div>
+    </div>`;
+  // pinta o mapa
+  document.querySelectorAll('.m').forEach(el => {
+    const m = el.dataset.m; el.dataset.h = heatLevel(vol[m], max);
+    if(m === sel) el.classList.add('sel');
+    el.innerHTML = `<title>${MUSCLES[m].pt}: ${Math.round(vol[m]*10)/10} séries em ${ui.range} dias${bandLabel}</title>`;
+  });
+}
+function onboardingCard(){
+  return `<div class="card" style="margin-bottom:12px;border-color:var(--accent)">
+    <div class="row"><div style="flex:1;min-width:220px"><h3 style="font-size:17px;margin-bottom:4px">Comece por aqui</h3>
+      <span class="muted">Monte um treino com seus exercícios e cargas atuais, ou carregue 8 semanas de exemplo para explorar o app.</span></div>
+      <button class="btn primary" data-action="new-workout">+ Criar treino</button>
+      ${DRIVE_ENABLED ? '<button class="btn" data-action="drive-restore">Restaurar do Google Drive</button>' : ''}
+      <button class="btn" data-action="demo">Dados de exemplo</button></div></div>`;
+}
+function musclePanel(m, v){
+  const list = S.exercises.filter(e => e.primary.includes(m) || e.secondary.includes(m))
+    .sort((a,b) => (b.primary.includes(m)-a.primary.includes(m)) || ((lastEntry(b.id)?1:0)-(lastEntry(a.id)?1:0)));
+  return `<div class="row" style="margin-bottom:6px"><h3 style="font-size:18px;flex:1">${MUSCLES[m].pt}</h3><span class="tag">${Math.round((v||0)*10)/10} séries · ${ui.range}d${ui.band==='all'?'':' · '+bandById(ui.band).short}</span></div>
+    <div>${list.map(e => exRow(e, e.primary.includes(m), ui.band, true)).join('') || '<p class="faint">Nenhum exercício mapeado.</p>'}</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-action="new-exercise" data-muscle="${m}">+ Exercício para ${MUSCLES[m].pt.toLowerCase()}</button></div>`;
+}
+function exRow(e, isPrimary=true, band='all', showBands=false){
+  const hist = historyFor(e.id).filter(x => inBand(x, band));
+  const last = hist[hist.length-1] || null, best = hist.reduce((a,x)=>Math.max(a,+x.load||0),0);
+  const chips = showBands ? bandChips(e.id, band) : '';
+  return `<div class="ex-row clickable" data-action="open-exercise" data-id="${e.id}">
+    <div style="flex:1;min-width:0"><div class="name">${esc(e.name)}</div>
+      <div class="meta">${isPrimary?'principal':'secundário'}${last?` · último ${fmtDate(last.date)} · ${last.sets}×${last.reps}`:(band==='all'?' · sem registros':` · sem registros em ${bandById(band).short}`)}</div>
+      ${chips?`<div class="row" style="gap:4px;margin-top:5px">${chips}</div>`:''}</div>
+    ${last?`<div style="text-align:right"><div class="load">${fmtKg(last.load)}</div>${best>last.load?`<div class="meta">recorde ${fmtKg(best)}</div>`:(best?'<span class="tag pr">no recorde</span>':'')}</div>`:''}
+  </div>`;
+}
+// recorde = carga acima do melhor anterior DO MESMO exercício NA MESMA faixa de reps
+function countPRs(days, band='all'){
+  const since = new Date(); since.setDate(since.getDate()-days+1); const sinceISO = since.toISOString().slice(0,10);
+  const best = {}; let n = 0;
+  for(const s of sortedSessions()) for(const e of s.entries){
+    const key = e.exerciseId + '|' + bandOf(e.reps).id, prev = best[key];
+    if(prev !== undefined && +e.load > prev && s.date >= sinceISO && inBand(e, band)) n++;
+    best[key] = Math.max(prev ?? 0, +e.load||0);
+  }
+  return n;
+}
+
+function viewTreinos(){
+  $view().innerHTML = `
+    <div class="section-title"><h2>Treinos salvos</h2><button class="btn primary" data-action="new-workout">+ Novo treino</button></div>
+    ${S.workouts.length===0 ? `<div class="card empty"><h3>Nenhum treino ainda</h3>Crie um treino (ex.: “Treino A — Pernas”) com exercícios, séries, repetições e carga.<div style="margin-top:12px"><button class="btn primary" data-action="new-workout">+ Criar treino</button></div></div>` : ''}
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+      ${S.workouts.map(w => {
+        const last = sortedSessions().filter(s=>s.workoutId===w.id).pop();
+        const muscles = [...new Set(w.items.flatMap(i => exById(i.exerciseId)?.primary || []))];
+        return `<div class="card wk">
+          <div class="wk-head"><h3 style="flex:1">${esc(w.name)}</h3><button class="btn sm ghost" data-action="edit-workout" data-id="${w.id}">Editar</button></div>
+          <div class="row">${muscles.slice(0,5).map(m=>`<span class="tag">${MUSCLES[m].pt}</span>`).join('')}</div>
+          <div class="wk-items">${w.items.map(i => { const ex = exById(i.exerciseId); return ex ? `<div><span>${esc(ex.name)}</span><b>${i.sets}×${i.reps} · ${fmtKg(i.load)}</b></div>` : ''; }).join('')}</div>
+          <div class="row" style="margin-top:4px"><span class="faint" style="font-size:12.5px">${last?`último: ${fmtDate(last.date)}`:'nunca executado'}</span><span class="spacer"></span>
+            <button class="btn primary sm" data-action="start-session" data-id="${w.id}">Registrar treino</button></div>
+        </div>`; }).join('')}
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn sm ghost" data-action="start-session" data-id="">Registrar treino avulso</button></div>`;
+}
+
+function viewHistorico(){
+  const used = [...new Set(S.sessions.flatMap(s=>s.entries.map(e=>e.exerciseId)))].map(exById).filter(Boolean);
+  const allSessions = sortedSessions().reverse(); const sessions = allSessions.slice(0, ui.showAll ? undefined : 12);
+  $view().innerHTML = `
+    <div class="section-title"><h2>Progresso</h2></div>
+    ${used.length ? `<div class="card" style="margin-bottom:12px"><div class="mini" style="margin-bottom:8px">Evolução por exercício</div>
+      <div class="grid">${used.sort((a,b)=>a.name.localeCompare(b.name)).map(e => {
+        const h = historyFor(e.id), first = h[0], last = h[h.length-1];
+        const delta = first && first.load ? Math.round((last.load-first.load)/first.load*100) : 0;
+        return `<div class="ex-row clickable" data-action="open-exercise" data-id="${e.id}"><div style="flex:1"><div class="name">${esc(e.name)}</div>
+          <div class="meta">${h.length} registros · desde ${fmtDate(first.date)}</div></div>
+          ${sparkline(h.map(x=>+x.load))}
+          <div style="text-align:right;min-width:86px"><div class="load">${fmtKg(last.load)}</div><div class="meta" style="color:${delta>0?'var(--good)':'var(--ink-3)'}">${delta>0?'+':''}${delta}%</div></div></div>`; }).join('')}</div></div>` : ''}
+    <div class="mini" style="margin:4px 0 8px">Sessões</div>
+    ${sessions.length===0 ? `<div class="card empty"><h3>Sem sessões registradas</h3>Registre um treino para começar o seu log de força.</div>` : ''}
+    <div class="grid">${sessions.map(s => `<div class="card">
+      <div class="ss-head"><div><b>${esc(s.workoutId && wkById(s.workoutId) ? wkById(s.workoutId).name : 'Treino avulso')}</b><div class="faint" style="font-size:12.5px">${fmtDateLong(s.date)}</div></div>
+        <button class="btn sm ghost" data-action="edit-session" data-id="${s.id}">Editar</button></div>
+      <div class="wk-items" style="margin-top:8px">${s.entries.map(e=>{const ex=exById(e.exerciseId);return ex?`<div><span>${esc(ex.name)}</span><b>${e.sets}×${e.reps} · ${fmtKg(e.load)}</b></div>`:''}).join('')}</div>
+    </div>`).join('')}</div>
+    ${allSessions.length > sessions.length ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn sm" data-action="show-all">Ver todas as ${allSessions.length} sessões</button></div>` : ''}`;
+}
+function sparkline(vals){
+  if(vals.length < 2) return '<svg width="80" height="28"></svg>';
+  const w=80,h=28,p=3, mn=Math.min(...vals), mx=Math.max(...vals), r=(mx-mn)||1;
+  const pts = vals.map((v,i)=>[p+i*(w-2*p)/(vals.length-1), h-p-(v-mn)/r*(h-2*p)]);
+  return `<svg width="${w}" height="${h}" aria-hidden="true"><polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts.map(q=>q.join(',')).join(' ')}"/><circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="2.5" fill="var(--accent)"/></svg>`;
+}
+
+function viewExercicios(){
+  const q = (ui.exQuery||'').toLowerCase();
+  $view().innerHTML = `
+    <div class="section-title"><h2>Exercícios</h2><button class="btn primary" data-action="new-exercise">+ Novo exercício</button></div>
+    <div style="margin-bottom:12px"><input type="text" id="exSearch" placeholder="Buscar exercício…" value="${esc(ui.exQuery||'')}"></div>
+    <div class="grid">${MUSCLE_ORDER.map(m => {
+      const list = S.exercises.filter(e => e.primary[0]===m && e.name.toLowerCase().includes(q));
+      return list.length ? `<div class="card"><div class="mini" style="margin-bottom:4px">${MUSCLES[m].pt}</div>${list.map(e=>exRow(e)).join('')}</div>` : '';
+    }).join('')}</div>
+    <div class="card" style="margin-top:16px"><div class="mini" style="margin-bottom:8px">Seus dados</div>
+      <p class="muted" style="margin:0 0 10px">Os dados ficam salvos neste navegador${memoryOnly?' (armazenamento indisponível — dados só nesta aba)':''}. Faça backup de vez em quando.</p>
+      <div class="row">
+        <label class="f" style="flex:1;min-width:200px">Seu nome (usado para identificar você no PostHog)
+          <div class="row" style="flex-wrap:nowrap"><input type="text" id="userName" value="${esc(S.user.name)}" placeholder="ex.: Lucas"><button class="btn" data-action="save-name">Salvar</button></div></label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn sm" data-action="export">Exportar backup (.json)</button>
+        <label class="btn sm" style="cursor:pointer">Importar backup<input type="file" accept="application/json" id="importFile" class="hide"></label>
+        <button class="btn sm" data-action="demo">Carregar dados de exemplo</button>
+        <span class="spacer"></span>
+        <button class="btn sm danger" data-action="reset">Apagar tudo</button>
+      </div></div>
+    ${driveCard()}`;
+  const inp = document.getElementById('exSearch');
+  inp.addEventListener('input', () => { ui.exQuery = inp.value; const pos = inp.selectionStart; viewExercicios(); const n = document.getElementById('exSearch'); n.focus(); n.setSelectionRange(pos,pos); });
+  document.getElementById('importFile').addEventListener('change', importBackup);
+}
+
+/* ---------------- 6) MODAIS ---------------- */
+const layer = () => document.getElementById('layer');
+function openModal(html, onMount){
+  layer().innerHTML = `<div class="scrim" data-action="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  document.body.style.overflow = 'hidden';
+  onMount && onMount(layer().querySelector('.modal'));
+}
+function closeModal(){ layer().innerHTML = ''; document.body.style.overflow = ''; releaseWakeLock(); }
+/* Mantém a tela ligada enquanto você registra o treino (Screen Wake Lock API) */
+let wakeLock = null;
+async function keepScreenOn(){ try{ if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); } }catch(e){} }
+function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null; }
+function confirmBox(msg, okLabel, onOk){
+  openModal(`<div class="modal-head"><h2>Confirmar</h2></div><p class="muted">${msg}</p>
+    <div class="modal-foot"><button class="btn ghost" data-action="close">Cancelar</button><button class="btn danger" id="okBtn">${okLabel}</button></div>`,
+    m => m.querySelector('#okBtn').onclick = () => { closeModal(); onOk(); });
+}
+function toast(msg){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const t = document.createElement('div'); t.className='toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 2400); }
+function celebrate(pr){
+  const c = document.createElement('div'); c.className = 'celebrate';
+  c.innerHTML = `<div class="burst">🏆 Novo recorde · ${pr.band.short} reps<b>${esc(pr.name)}</b>${fmtKg(pr.previous)} → ${fmtKg(pr.load)}</div>`;
+  document.body.appendChild(c); setTimeout(()=>c.remove(), 2600);
+}
+
+function exerciseOptions(selectedId){
+  return MUSCLE_ORDER.map(m => {
+    const list = S.exercises.filter(e=>e.primary[0]===m); if(!list.length) return '';
+    return `<optgroup label="${MUSCLES[m].pt}">${list.map(e=>`<option value="${e.id}" ${e.id===selectedId?'selected':''}>${esc(e.name)}</option>`).join('')}</optgroup>`;
+  }).join('');
+}
+function stepper(name, value, step){
+  return `<div class="stepper"><button type="button" data-step="-${step}" data-for="${name}">−</button><input type="number" inputmode="decimal" step="any" min="0" name="${name}" value="${value}"><button type="button" data-step="${step}" data-for="${name}">+</button></div>`;
+}
+
+/* ---- editor de treino ---- */
+function openWorkoutEditor(id){
+  const existing = id ? wkById(id) : null;
+  const draft = existing ? JSON.parse(JSON.stringify(existing)) : { id:uid('wk'), name:'', items:[] };
+  const render = (m) => {
+    m.innerHTML = `<div class="modal-head"><h2>${existing?'Editar treino':'Novo treino'}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+      <label class="f">Nome do treino<input type="text" id="wkName" value="${esc(draft.name)}" placeholder="ex.: Treino A — Pernas"></label>
+      <div class="mini" style="margin:16px 0 8px">Exercícios</div>
+      <div class="grid" id="wkItems">${draft.items.map((it,i) => `<div class="set-row" data-i="${i}">
+        <div class="row" style="flex-wrap:nowrap"><select data-f="exerciseId">${exerciseOptions(it.exerciseId)}</select>
+          <button class="btn icon sm ghost" data-move="-1" data-i="${i}" aria-label="Subir">↑</button><button class="btn icon sm ghost" data-move="1" data-i="${i}" aria-label="Descer">↓</button><button class="btn icon sm danger" data-remove="${i}" aria-label="Remover">✕</button></div>
+        <div class="set-inputs"><label class="f">Carga (kg)${stepper('load_'+i, it.load, 2.5)}</label><label class="f">Séries<input type="number" min="1" data-f="sets" value="${it.sets}"></label><label class="f">Reps<input type="number" min="1" data-f="reps" value="${it.reps}"></label></div>
+      </div>`).join('') || '<p class="faint" style="margin:0">Adicione o primeiro exercício abaixo.</p>'}</div>
+      <div class="row" style="margin-top:10px"><select id="addEx">${exerciseOptions()}</select><button class="btn" id="addExBtn">+ Adicionar</button></div>
+      <div class="modal-foot">${existing?'<button class="btn danger" id="delWk">Excluir</button><span class="spacer"></span>':''}<button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="saveWk">Salvar treino</button></div>`;
+    const pull = () => {
+      draft.name = m.querySelector('#wkName').value.trim();
+      m.querySelectorAll('#wkItems .set-row').forEach(row => { const it = draft.items[+row.dataset.i];
+        it.exerciseId = row.querySelector('[data-f=exerciseId]').value;
+        it.load = +row.querySelector(`[name=load_${row.dataset.i}]`).value || 0;
+        it.sets = +row.querySelector('[data-f=sets]').value || 1; it.reps = +row.querySelector('[data-f=reps]').value || 1; });
+    };
+    m.querySelector('#addExBtn').onclick = () => { pull(); const exId = m.querySelector('#addEx').value; const last = lastEntry(exId);
+      draft.items.push({ exerciseId:exId, sets: last?.sets||3, reps: last?.reps||10, load: last?.load||0 }); render(m); };
+    m.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { pull(); draft.items.splice(+b.dataset.remove,1); render(m); });
+    m.querySelectorAll('[data-move]').forEach(b => b.onclick = () => { pull(); const i=+b.dataset.i, j=i+(+b.dataset.move); if(j<0||j>=draft.items.length) return; [draft.items[i],draft.items[j]]=[draft.items[j],draft.items[i]]; render(m); });
+    m.querySelector('#saveWk').onclick = () => { pull();
+      if(!draft.name){ m.querySelector('#wkName').focus(); toast('Dê um nome ao treino'); return; }
+      if(!draft.items.length){ toast('Adicione pelo menos um exercício'); return; }
+      if(existing){ Object.assign(existing, draft); track('workout_updated', { workout_id:draft.id, exercise_count:draft.items.length }); }
+      else { draft.createdAt = Date.now(); S.workouts.push(draft); track('workout_created', { workout_id:draft.id, exercise_count:draft.items.length, muscle_groups:[...new Set(draft.items.flatMap(i=>exById(i.exerciseId)?.primary||[]))] }); }
+      save(); syncPersonProps(); closeModal(); toast('Treino salvo'); route(); autoBackupAfterChange(); };
+    if(existing) m.querySelector('#delWk').onclick = () => confirmBox(`Excluir o treino “${esc(existing.name)}”? O histórico de sessões é mantido.`, 'Excluir', () => {
+      S.workouts = S.workouts.filter(w=>w.id!==existing.id); save(); syncPersonProps(); track('workout_deleted', { workout_id:existing.id }); route(); });
+  };
+  openModal('', render);
+  track('workout_editor_opened', { mode: existing ? 'edit' : 'create' });
+}
+
+/* ---- registrar / editar sessão ---- */
+function openSession({ workoutId=null, sessionId=null, exerciseId=null, source='workout' }={}){
+  const existing = sessionId ? S.sessions.find(s=>s.id===sessionId) : null;
+  const wk = workoutId ? wkById(workoutId) : null;
+  let draft;
+  if(existing) draft = JSON.parse(JSON.stringify(existing));
+  else {
+    const items = wk ? wk.items : (exerciseId ? [{ exerciseId }] : []);
+    draft = { id:uid('ss'), date:todayISO(), workoutId:wk?wk.id:null, startedAt:Date.now(),
+      entries: items.map(it => { const last = lastEntry(it.exerciseId);
+        return { exerciseId:it.exerciseId, load: it.load ?? last?.load ?? 0, sets: it.sets ?? last?.sets ?? 3, reps: it.reps ?? last?.reps ?? 10 }; }) };
+    track('session_started', { source, workout_id: draft.workoutId, planned_exercise_count: draft.entries.length });
+  }
+  const render = (m) => {
+    m.innerHTML = `<div class="modal-head"><h2>${existing?'Editar sessão':(wk?esc(wk.name):'Treino avulso')}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+      <label class="f" style="max-width:200px">Data<input type="date" id="ssDate" value="${draft.date}"></label>
+      <div class="grid" id="ssItems" style="margin-top:14px">${draft.entries.map((e,i) => { const ex = exById(e.exerciseId); const last = lastEntry(e.exerciseId);
+        return `<div class="set-row" data-i="${i}">
+          <div class="row" style="flex-wrap:nowrap"><b style="flex:1">${esc(ex?.name||'?')}</b><button class="btn icon sm danger" data-remove="${i}" aria-label="Remover">✕</button></div>
+          <div class="faint" style="font-size:12.5px;margin-top:-4px">${last && !existing ? `anterior: ${last.sets}×${last.reps} · ${fmtKg(last.load)} · ` : ''}<span data-hint="${i}">${sessionHint(e, draft.id)}</span></div>
+          <div class="set-inputs"><label class="f">Carga (kg)${stepper('load_'+i, e.load, 2.5)}</label><label class="f">Séries<input type="number" min="1" data-f="sets" value="${e.sets}"></label><label class="f">Reps<input type="number" min="1" data-f="reps" value="${e.reps}"></label></div>
+        </div>`; }).join('') || '<p class="faint" style="margin:0">Adicione os exercícios que você fez.</p>'}</div>
+      <div class="row" style="margin-top:10px"><select id="addEx">${exerciseOptions()}</select><button class="btn" id="addExBtn">+ Adicionar</button></div>
+      ${wk && !existing ? `<label class="row" style="margin-top:14px;font-size:13.5px;color:var(--ink-2);cursor:pointer"><input type="checkbox" id="updTpl" checked style="width:auto"> Atualizar as cargas do treino salvo com estes valores</label>`:''}
+      <div class="modal-foot">${existing?'<button class="btn danger" id="delSs">Excluir</button><span class="spacer"></span>':''}<button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="saveSs">${existing?'Salvar':'Concluir treino'}</button></div>`;
+    m.querySelectorAll('#ssItems .set-row').forEach(row => {
+      const upd = () => { const i = +row.dataset.i, e = { ...draft.entries[i], load: +row.querySelector(`[name=load_${i}]`).value || 0, reps: +row.querySelector('[data-f=reps]').value || 1 };
+        row.querySelector('[data-hint]').innerHTML = sessionHint(e, draft.id); };
+      row.addEventListener('input', upd); row.addEventListener('click', ev => { if(ev.target.closest('[data-step]')) setTimeout(upd, 0); });
+    });
+    const pull = () => { draft.date = m.querySelector('#ssDate').value || todayISO();
+      m.querySelectorAll('#ssItems .set-row').forEach(row => { const e = draft.entries[+row.dataset.i];
+        e.load = +row.querySelector(`[name=load_${row.dataset.i}]`).value || 0; e.sets = +row.querySelector('[data-f=sets]').value || 1; e.reps = +row.querySelector('[data-f=reps]').value || 1; }); };
+    m.querySelector('#addExBtn').onclick = () => { pull(); const exId = m.querySelector('#addEx').value; const last = lastEntry(exId);
+      draft.entries.push({ exerciseId:exId, load:last?.load||0, sets:last?.sets||3, reps:last?.reps||10 }); render(m); };
+    m.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { pull(); draft.entries.splice(+b.dataset.remove,1); render(m); });
+    m.querySelector('#saveSs').onclick = () => { pull();
+      if(!draft.entries.length){ toast('Adicione pelo menos um exercício'); return; }
+      if(existing){ Object.assign(existing, draft); save(); track('session_updated', { session_id:draft.id, exercise_count:draft.entries.length }); closeModal(); toast('Sessão atualizada'); route(); autoBackupAfterChange(); return; }
+      // recordes: compara com o melhor histórico ANTES de salvar
+      const prs = draft.entries.map(e => { const band = bandOf(e.reps), prev = bestByBand(e.exerciseId)[band.id];
+        return (prev && prev.load > 0 && e.load > prev.load) ? { exerciseId:e.exerciseId, name:exById(e.exerciseId)?.name, load:e.load, reps:e.reps, previous:prev.load, band, allTime: e.load > bestLoad(e.exerciseId) } : null; }).filter(Boolean);
+      draft.finishedAt = Date.now(); S.sessions.push(draft);
+      const updTpl = m.querySelector('#updTpl');
+      if(wk && updTpl && updTpl.checked){ wk.items.forEach(it => { const e = draft.entries.find(x=>x.exerciseId===it.exerciseId); if(e){ it.load=e.load; it.sets=e.sets; it.reps=e.reps; } }); }
+      save(); syncPersonProps();
+      const volume = draft.entries.reduce((a,e)=>a+e.load*e.sets*e.reps,0);
+      track('session_completed', { session_id:draft.id, workout_id:draft.workoutId, source, exercise_count:draft.entries.length,
+        total_sets:draft.entries.reduce((a,e)=>a+e.sets,0), total_volume_kg:Math.round(volume), pr_count:prs.length,
+        duration_min: Math.round((draft.finishedAt-draft.startedAt)/60000), template_updated: !!(updTpl && updTpl.checked) });
+      prs.forEach(p => track('personal_record_set', { exercise_id:p.exerciseId, exercise_name:p.name, load_kg:p.load, reps:p.reps, previous_kg:p.previous,
+        rep_range:p.band.id, rep_range_label:p.band.short, is_all_time_best:p.allTime, improvement_pct: Math.round((p.load-p.previous)/p.previous*1000)/10 }));
+      closeModal(); route();
+      if(prs.length){ if(flags.prCelebration) celebrate(prs[0]); else toast(`Recorde ${prs[0].band.short} reps em ${prs[0].name}: ${fmtKg(prs[0].load)}`); }
+      else toast('Treino registrado 💪');
+      autoBackupAfterChange();
+    };
+    if(existing) m.querySelector('#delSs').onclick = () => confirmBox('Excluir esta sessão do histórico?', 'Excluir', () => {
+      S.sessions = S.sessions.filter(s=>s.id!==existing.id); save(); syncPersonProps(); track('session_deleted', { session_id:existing.id }); route(); });
+  };
+  openModal('', render);
+  if(!existing) keepScreenOn();
+}
+
+function sessionHint(e, sessionId){
+  const band = bandOf(e.reps), prev = bestByBand(e.exerciseId, sessionId)[band.id];
+  if(!prev) return `faixa <b>${band.short}</b> · primeiro registro nesta faixa`;
+  const beat = +e.load > prev.load;
+  return `faixa <b>${band.short}</b> · recorde ${fmtKg(prev.load)}${beat ? ' · <span style="color:var(--good);font-weight:600">novo recorde 🏆</span>' : ''}`;
+}
+
+/* ---- exercício: detalhe + gráfico ---- */
+function openExercise(id){
+  const ex = exById(id); if(!ex) return;
+  const h = historyFor(id);
+  let metric = 'load', band = 'all';
+  const render = (m) => {
+    const best = bestLoad(id), bb = bestByBand(id);
+    const hb = h.filter(x => inBand(x, band));
+    m.innerHTML = `<div class="modal-head"><h2>${esc(ex.name)}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+      <div class="row" style="margin-bottom:12px">${ex.primary.map(x=>`<span class="tag" style="border-color:var(--accent);color:var(--accent)">${MUSCLES[x].pt}</span>`).join('')}${ex.secondary.map(x=>`<span class="tag">${MUSCLES[x].pt}</span>`).join('')}</div>
+      ${h.length ? `
+      <div class="stat-row" style="margin-bottom:12px"><div class="stat"><b>${fmtKg(h[h.length-1].load)}</b><span>carga atual</span></div><div class="stat"><b>${fmtKg(best)}</b><span>maior carga</span></div><div class="stat"><b>${fmtKg(Math.max(...h.map(x=>e1rm(+x.load,+x.reps))))}</b><span>1RM estimado</span></div></div>
+      <div class="mini" style="margin:4px 0 6px">Recordes por faixa de repetições</div>
+      <table class="hist" style="margin-bottom:14px"><thead><tr><th>Faixa</th><th>Recorde</th><th>Reps</th><th>Data</th><th>1RM est.</th></tr></thead><tbody>
+        ${REP_BANDS.map(b => { const r = bb[b.id]; return `<tr${r?' class="clickable" data-band="'+b.id+'"':''} style="${band===b.id?'background:var(--accent-soft)':''}${r?';cursor:pointer':''}"><td><b>${b.short}</b> <span class="faint">${b.pt.toLowerCase()}</span></td>
+          ${r ? `<td class="num"><b>${fmtKg(r.load)}</b></td><td class="num">${r.reps}</td><td>${fmtDate(r.date)}</td><td class="num faint">${fmtKg(e1rm(r.load,r.reps))}</td>` : '<td class="faint" colspan="4">—</td>'}</tr>`; }).join('')}
+      </tbody></table>
+      <div class="row" style="gap:6px;margin-bottom:8px;flex-wrap:nowrap;overflow-x:auto"><span class="chip ${band==='all'?'on':''}" data-band="all">Todas</span>${REP_BANDS.filter(b=>bb[b.id]).map(b=>`<span class="chip ${band===b.id?'on':''}" data-band="${b.id}" style="white-space:nowrap">${b.short}</span>`).join('')}</div>
+      <div class="row" style="margin-bottom:6px"><span class="mini" style="flex:1">${metric==='load'?'Carga por sessão (kg)':'1RM estimado — Epley (kg)'}${band==='all'?'':' · '+bandById(band).short+' reps'}</span>
+        <div class="seg"><button class="${metric==='load'?'on':''}" data-metric="load">Carga</button><button class="${metric==='e1rm'?'on':''}" data-metric="e1rm">1RM est.</button></div></div>
+      <div class="chart-wrap" id="chart">${lineChart(hb.map(x=>({ date:x.date, v: metric==='load' ? +x.load : Math.round(e1rm(+x.load,+x.reps)*10)/10, label:`${x.sets}×${x.reps}` })))}<div class="tip" id="tip"></div></div>
+      <div class="mini" style="margin:16px 0 4px">Histórico</div>
+      <table class="hist"><thead><tr><th>Data</th><th>Carga</th><th>Séries × reps</th><th>1RM est.</th></tr></thead><tbody>
+        ${[...h].reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td class="num">${fmtKg(x.load)}</td><td class="num">${x.sets}×${x.reps}</td><td class="num faint">${fmtKg(e1rm(+x.load,+x.reps))}</td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty"><h3>Sem registros ainda</h3>Registre este exercício para começar a acompanhar a progressão.</div>`}
+      <div class="modal-foot">${ex.custom?'<button class="btn ghost" id="editEx">Editar exercício</button><span class="spacer"></span>':''}<button class="btn primary" id="logEx">Registrar agora</button></div>`;
+    m.querySelectorAll('[data-metric]').forEach(b => b.onclick = () => { metric = b.dataset.metric; track('progress_metric_changed', { metric, exercise_id:id }); render(m); });
+    m.querySelectorAll('[data-band]').forEach(b => b.onclick = () => { band = (band === b.dataset.band && band !== 'all') ? 'all' : b.dataset.band; track('rep_range_filter_changed', { context:'exercise', rep_range:band, exercise_id:id }); render(m); });
+    m.querySelector('#logEx').onclick = () => { closeModal(); openSession({ exerciseId:id, source:'exercise_detail' }); };
+    if(ex.custom) m.querySelector('#editEx').onclick = () => { closeModal(); openExerciseEditor(id); };
+    bindChart(m);
+  };
+  openModal('', render);
+  track('exercise_progress_viewed', { exercise_id:id, exercise_name:ex.name, data_points:h.length, primary_muscles:ex.primary });
+}
+function lineChart(pts){
+  const W=560, H=220, L=44, R=14, T=14, B=28;
+  if(pts.length===1) pts = [pts[0]];
+  const vals = pts.map(p=>p.v), mn0 = Math.min(...vals), mx0 = Math.max(...vals);
+  const pad = Math.max(2.5, (mx0-mn0)*0.15); const mn = Math.max(0, Math.floor((mn0-pad)/5)*5), mx = Math.ceil((mx0+pad)/5)*5;
+  const x = i => pts.length===1 ? (L+W-R)/2 : L + i*(W-L-R)/(pts.length-1);
+  const y = v => T + (1-(v-mn)/((mx-mn)||1))*(H-T-B);
+  const ticks = 4; const grid = Array.from({length:ticks+1},(_,i)=> mn + i*(mx-mn)/ticks);
+  const xl = pts.length<=6 ? pts.map((_,i)=>i) : [0, Math.floor((pts.length-1)/2), pts.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de progressão">
+    ${grid.map(g=>`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(g)+4}" text-anchor="end" font-size="11" fill="var(--ink-3)">${Math.round(g)}</text>`).join('')}
+    ${xl.map(i=>`<text x="${x(i)}" y="${H-8}" text-anchor="${pts.length===1?'middle':i===0?'start':i===pts.length-1?'end':'middle'}" font-size="11" fill="var(--ink-3)">${fmtDate(pts[i].date)}</text>`).join('')}
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts.map((p,i)=>`${x(i)},${y(p.v)}`).join(' ')}"/>
+    <line id="xhair" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--ink-3)" stroke-dasharray="3 3" opacity="0"/>
+    ${pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`).join('')}
+    <text x="${x(pts.length-1)}" y="${y(pts[pts.length-1].v)-10}" text-anchor="${pts.length>1?'end':'middle'}" font-size="12" font-weight="700" fill="var(--ink)">${(Math.round(pts[pts.length-1].v*10)/10).toLocaleString('pt-BR')} kg</text>
+    ${pts.map((p,i)=>{ const w=(W-L-R)/Math.max(1,pts.length-1); return `<rect class="hit" data-i="${i}" data-x="${x(i)}" data-y="${y(p.v)}" data-t="${fmtDate(p.date)}|${(Math.round(p.v*10)/10).toLocaleString('pt-BR')} kg|${p.label}" x="${x(i)-w/2}" y="${T}" width="${w}" height="${H-T-B}" fill="transparent"/>`; }).join('')}
+  </svg>`;
+}
+function bindChart(m){
+  const wrap = m.querySelector('#chart'); if(!wrap) return; const svg = wrap.querySelector('svg'), tip = wrap.querySelector('#tip'), xh = svg.querySelector('#xhair');
+  const show = r => { const sc = svg.getBoundingClientRect().width / 560; const [d,v,l] = r.dataset.t.split('|');
+    tip.innerHTML = `<b>${v}</b> · ${l}<br><span class="faint">${d}</span>`; const tw = tip.offsetWidth || 120, cw = wrap.clientWidth; tip.style.left = Math.min(cw - tw/2, Math.max(tw/2, +r.dataset.x*sc))+'px'; tip.style.top = (+r.dataset.y*sc)+'px'; tip.style.opacity = 1;
+    xh.setAttribute('x1', r.dataset.x); xh.setAttribute('x2', r.dataset.x); xh.setAttribute('opacity', .6); };
+  svg.querySelectorAll('.hit').forEach(r => { r.addEventListener('mouseenter', () => show(r)); r.addEventListener('touchstart', () => show(r), {passive:true}); });
+  svg.addEventListener('mouseleave', () => { tip.style.opacity = 0; xh.setAttribute('opacity', 0); });
+}
+
+/* ---- criar / editar exercício ---- */
+function openExerciseEditor(id, presetMuscle){
+  const existing = id ? exById(id) : null;
+  const draft = existing ? JSON.parse(JSON.stringify(existing)) : { id:uid('ex'), name:'', primary: presetMuscle?[presetMuscle]:[], secondary:[], custom:true };
+  const render = (m) => {
+    m.innerHTML = `<div class="modal-head"><h2>${existing?'Editar exercício':'Novo exercício'}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+      <label class="f">Nome<input type="text" id="exName" value="${esc(draft.name)}" placeholder="ex.: Hack squat"></label>
+      <div class="mini" style="margin:16px 0 8px">Músculos principais</div>
+      <div class="row">${MUSCLE_ORDER.map(k=>`<span class="chip ${draft.primary.includes(k)?'on':''}" data-p="${k}">${MUSCLES[k].pt}</span>`).join('')}</div>
+      <div class="mini" style="margin:16px 0 8px">Músculos secundários <span style="text-transform:none;letter-spacing:0">(contam meia série no mapa)</span></div>
+      <div class="row">${MUSCLE_ORDER.map(k=>`<span class="chip sec ${draft.secondary.includes(k)?'on':''}" data-s="${k}">${MUSCLES[k].pt}</span>`).join('')}</div>
+      <div class="modal-foot">${existing?'<button class="btn danger" id="delEx">Excluir</button><span class="spacer"></span>':''}<button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="saveEx">Salvar</button></div>`;
+    const nameEl = m.querySelector('#exName');
+    m.querySelectorAll('[data-p]').forEach(c => c.onclick = () => { draft.name = nameEl.value; const k=c.dataset.p; draft.primary = draft.primary.includes(k)?draft.primary.filter(x=>x!==k):[...draft.primary,k]; draft.secondary = draft.secondary.filter(x=>x!==k); render(m); });
+    m.querySelectorAll('[data-s]').forEach(c => c.onclick = () => { draft.name = nameEl.value; const k=c.dataset.s; draft.secondary = draft.secondary.includes(k)?draft.secondary.filter(x=>x!==k):[...draft.secondary,k]; draft.primary = draft.primary.filter(x=>x!==k); render(m); });
+    m.querySelector('#saveEx').onclick = () => { draft.name = nameEl.value.trim();
+      if(!draft.name){ nameEl.focus(); toast('Dê um nome ao exercício'); return; }
+      if(!draft.primary.length){ toast('Escolha pelo menos um músculo principal'); return; }
+      if(existing){ Object.assign(existing, draft); track('exercise_updated', { exercise_id:draft.id }); }
+      else { S.exercises.push(draft); track('exercise_created', { exercise_id:draft.id, exercise_name:draft.name, primary_muscles:draft.primary, secondary_muscles:draft.secondary, from_muscle_map: !!presetMuscle }); }
+      save(); syncPersonProps(); closeModal(); toast('Exercício salvo'); route(); };
+    if(existing) m.querySelector('#delEx').onclick = () => confirmBox(`Excluir “${esc(existing.name)}”? Registros antigos deste exercício deixam de aparecer.`, 'Excluir', () => {
+      S.exercises = S.exercises.filter(e=>e.id!==existing.id); S.workouts.forEach(w => w.items = w.items.filter(i=>i.exerciseId!==existing.id)); save(); route(); });
+  };
+  openModal('', render);
+}
+
+/* ---- onboarding da primeira sessão ---- */
+function openOnboarding(){
+  track('onboarding_started');
+  let step = 1;
+  const finish = (next) => {
+    S.settings.onboarded = true; save();
+    track('onboarding_completed', { has_name: !!S.user.name, next_step: next });
+    closeModal();
+    if(next === 'create_workout') openWorkoutEditor();
+    else if(next === 'demo') loadDemo();
+    else if(next === 'restore') withDrive(startRestore);
+  };
+  const render = (m) => {
+    if(step === 1){
+      m.innerHTML = `<div style="text-align:center;padding:8px 4px 0">
+          <div class="brand-mark" style="width:56px;height:56px;font-size:24px;margin:0 auto 14px;border-radius:16px">LM</div>
+          <h2 style="font-size:24px;margin-bottom:6px">Bem-vindo ao LiftMap</h2>
+          <p class="muted" style="margin:0 0 18px">Registre suas cargas, veja quais músculos você treinou e acompanhe sua força ao longo do tempo.</p></div>
+        <label class="f">Como podemos te chamar?<input type="text" id="obName" placeholder="Seu nome" autocomplete="given-name" maxlength="40" value="${esc(S.user.name)}"></label>
+        <p class="faint" style="font-size:12.5px;margin:8px 0 0">Seus treinos ficam neste aparelho. O nome serve para personalizar o app e identificar seu uso nas métricas do produto.</p>
+        <div class="modal-foot"><button class="btn ghost" id="obSkip">Pular</button><button class="btn primary" id="obNext">Continuar</button></div>`;
+      const inp = m.querySelector('#obName'); setTimeout(() => inp.focus(), 50);
+      const next = (skipped) => {
+        const n = skipped ? '' : inp.value.trim();
+        if(n){ S.user.name = n; save(); identifyUser(); }
+        track('onboarding_name_step_completed', { skipped: !n });
+        step = 2; render(m);
+      };
+      m.querySelector('#obNext').onclick = () => next(false);
+      m.querySelector('#obSkip').onclick = () => next(true);
+      inp.addEventListener('keydown', e => { if(e.key === 'Enter') next(false); });
+    } else {
+      const opt = (id, title, sub, primary) => `<button class="btn ${primary?'primary':''}" data-ob="${id}" style="width:100%;justify-content:flex-start;padding:14px;text-align:left;white-space:normal"><span><b style="display:block">${title}</b><span style="font-weight:500;font-size:13px;opacity:.8">${sub}</span></span></button>`;
+      m.innerHTML = `<div class="modal-head"><h2>${S.user.name ? `Bora, ${esc(S.user.name)}! 💪` : 'Como quer começar?'}</h2></div>
+        <div class="grid">
+          ${opt('create_workout','Criar meu primeiro treino','Ex.: Treino A — Pernas, com exercícios, séries e carga atual', true)}
+          ${DRIVE_ENABLED ? opt('restore','Restaurar do Google Drive','Já usava o LiftMap em outro aparelho') : ''}
+          ${opt('demo','Explorar com dados de exemplo','8 semanas de treinos fictícios para ver o mapa e os gráficos')}
+        </div>
+        <div class="modal-foot"><button class="btn ghost" data-ob="explore">Agora não</button></div>`;
+      m.querySelectorAll('[data-ob]').forEach(b => b.onclick = () => finish(b.dataset.ob));
+    }
+  };
+  openModal('', render);
+}
+
+/* ---- debug PostHog ---- */
+function openDebug(){
+  const ph = PH();
+  openModal(`<div class="modal-head"><h2>Eventos do PostHog</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <p class="muted" style="margin-top:0">${ph ? 'Conectado. Os eventos abaixo foram enviados nesta aba — confira em <b>Activity</b> no PostHog.' : 'PostHog <b>não configurado</b>: cole o token do projeto no topo do index.html. Os eventos abaixo ficam só neste painel.'}</p>
+    ${ph ? `<div class="row" style="margin-bottom:8px"><span class="tag">distinct_id: ${esc(String((ph.get_distinct_id && ph.get_distinct_id()) || 'carregando…'))}</span><span class="tag">flag pr-celebration: ${flags.prCelebration?'on':'off'}</span></div>` : ''}
+    <div id="dbgList"></div>`);
+  renderDebugList();
+}
+function renderDebugList(){
+  const el = document.getElementById('dbgList'); if(!el) return;
+  el.innerHTML = eventLog.length ? eventLog.map(e=>`<div class="dbg-ev"><span class="faint">${e.at}</span> <b>${esc(e.event)}</b><pre>${esc(JSON.stringify(e.props))}</pre></div>`).join('') : '<p class="faint">Nenhum evento ainda. Use o app e volte aqui.</p>';
+}
+
+/* ---- backup / demo ---- */
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `liftmap-backup-${todayISO()}.json`; document.body.appendChild(a); a.click(); a.remove();
+  track('data_exported', { sessions_count:S.sessions.length });
+}
+function importBackup(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  f.text().then(t => { const d = JSON.parse(t); if(!d || d.version!==1 || !Array.isArray(d.sessions)) throw new Error('formato');
+    d.user = S.user; const st = S.settings; S = migrate(d); S.settings = st; save(); syncPersonProps(); track('data_imported', { sessions_count:S.sessions.length }); toast('Backup importado'); route(); })
+   .catch(() => toast('Arquivo inválido'));
+}
+function loadDemo(){
+  const plan = [
+    { name:'Treino A — Pernas', items:[['ex_leg-press-45',3,10,160,10],['ex_agachamento-livre',4,8,60,2.5],['ex_cadeira-extensora',3,12,40,2.5],['ex_mesa-flexora',3,12,35,2.5],['ex_panturrilha-em-pe',4,15,60,5]] },
+    { name:'Treino B — Peito e tríceps', items:[['ex_supino-reto-barra',4,8,50,2.5],['ex_supino-inclinado-halteres',3,10,20,1],['ex_crucifixo-peck-deck',3,12,35,2.5],['ex_triceps-corda-polia',3,12,25,1.25]] },
+    { name:'Treino C — Costas e bíceps', items:[['ex_puxada-frontal-pulldown',4,10,50,2.5],['ex_remada-baixa-cabo',3,10,45,2.5],['ex_rosca-direta',3,10,24,1],['ex_abdominal-na-polia',3,15,30,2.5]] },
+  ];
+  const workouts = plan.map(p => ({ id:uid('wk'), name:p.name, createdAt:Date.now(), items:p.items.map(([exerciseId,sets,reps,load])=>({exerciseId,sets,reps,load})) }));
+  const sessions = []; const start = new Date(); start.setDate(start.getDate() - 7*8 + 1);
+  for(let week=0; week<8; week++) plan.forEach((p,pi) => {
+    const d = new Date(start); d.setDate(d.getDate() + week*7 + pi*2);
+    if(d > new Date()) return;
+    sessions.push({ id:uid('ss'), date:d.toISOString().slice(0,10), workoutId:workouts[pi].id, startedAt:d.getTime(), finishedAt:d.getTime()+3600e3,
+      entries:p.items.map(([exerciseId,sets,reps,load,inc]) => { const base = load + inc*Math.floor(week*0.75 + (week%3===2?0:0.3));
+        // semanas ímpares: compostos em 5 reps com mais carga; semana 7: teste de 1RM no supino
+        if(week === 7 && exerciseId === 'ex_supino-reto-barra') return { exerciseId, sets:1, reps:1, load: Math.round(base*1.3/2.5)*2.5 };
+        if(week % 2 === 1 && ['ex_agachamento-livre','ex_supino-reto-barra','ex_leg-press-45','ex_puxada-frontal-pulldown'].includes(exerciseId)) return { exerciseId, sets, reps:5, load: Math.round(base*1.15/2.5)*2.5 };
+        if(week % 4 === 2 && exerciseId === 'ex_cadeira-extensora') return { exerciseId, sets, reps:15, load: Math.round(base*0.8/2.5)*2.5 };
+        return { exerciseId, sets, reps, load:base }; }) });
+  });
+  workouts.forEach((w,pi) => { const last = sessions.filter(s=>s.workoutId===w.id).pop(); if(last) w.items.forEach(it => { const e = last.entries.find(x=>x.exerciseId===it.exerciseId); if(e) it.load = e.load; }); });
+  S.workouts.push(...workouts); S.sessions.push(...sessions); save(); syncPersonProps();
+  track('demo_data_loaded', { sessions_added:sessions.length, workouts_added:workouts.length });
+  toast('8 semanas de exemplo carregadas'); location.hash = '#mapa'; route();
+}
+
+/* ---------------- 7) ROTAS E EVENTOS ---------------- */
+const ROUTES = { mapa:viewMapa, treinos:viewTreinos, historico:viewHistorico, exercicios:viewExercicios };
+let lastScreen = null;
+function route(){
+  const name = (location.hash||'').replace('#','') || 'mapa';
+  const fn = ROUTES[name] || viewMapa; const screen = ROUTES[name] ? name : 'mapa';
+  document.querySelectorAll('nav.tabs a').forEach(a => a.classList.toggle('active', a.dataset.tab === screen));
+  fn();
+  if(screen !== lastScreen){ track('screen_viewed', { screen }); lastScreen = screen; }
+}
+window.addEventListener('hashchange', () => { closeModal(); route(); window.scrollTo(0,0); });
+
+document.addEventListener('click', ev => {
+  const stepBtn = ev.target.closest('[data-step]');
+  if(stepBtn){ const inp = stepBtn.parentElement.querySelector('input'); inp.value = Math.max(0, Math.round(((+inp.value||0) + (+stepBtn.dataset.step))*100)/100); return; }
+  const el = ev.target.closest('[data-action]');
+  const mEl = ev.target.closest('.m');
+  if(mEl && !el){ const m = mEl.dataset.m; ui.selected = (ui.selected === m) ? null : m; viewMapa();
+    if(ui.selected) { track('muscle_selected', { muscle:m, view: mEl.closest('svg').getAttribute('aria-label').includes('frontal') ? 'front' : 'back', range_days:ui.range });
+      if(window.innerWidth < 820) document.getElementById('musclePanel').scrollIntoView({behavior:'smooth', block:'start'}); }
+    return; }
+  if(!el) return;
+  const a = el.dataset.action;
+  if(a === 'scrim'){ if(ev.target === el){ if(!S.settings.onboarded){ S.settings.onboarded = true; save(); track('onboarding_dismissed'); } closeModal(); } return; }
+  if(a === 'close') return closeModal();
+  if(a === 'band'){ ui.band = el.dataset.band; track('rep_range_filter_changed', { context:'map', rep_range:ui.band }); return viewMapa(); }
+  if(a === 'range'){ ui.range = +el.dataset.days; track('heatmap_range_changed', { range_days:ui.range }); return viewMapa(); }
+  if(a === 'new-workout') return openWorkoutEditor();
+  if(a === 'edit-workout') return openWorkoutEditor(el.dataset.id);
+  if(a === 'start-session') return openSession({ workoutId: el.dataset.id || null, source: el.dataset.id ? 'workout' : 'quick' });
+  if(a === 'edit-session') return openSession({ sessionId: el.dataset.id });
+  if(a === 'open-exercise'){ closeModal(); return openExercise(el.dataset.id); }
+  if(a === 'new-exercise') return openExerciseEditor(null, el.dataset.muscle);
+  if(a === 'open-debug') return openDebug();
+  if(a === 'show-all'){ ui.showAll = true; return viewHistorico(); }
+  if(a === 'open-backup') return openBackup();
+  if(a === 'drive-backup') return withDrive(() => { S.settings.backupPending = false; uploadBackup('manual'); });
+  if(a === 'drive-restore') return withDrive(startRestore);
+  if(a === 'drive-auto'){ S.settings.autoBackup = el.checked; save(); track('auto_backup_toggled', { enabled:el.checked }); return; }
+  if(a === 'export') return exportBackup();
+  if(a === 'demo') return loadDemo();
+  if(a === 'save-name'){ const n = document.getElementById('userName').value.trim(); S.user.name = n; save();
+    identifyUser();
+    track('profile_updated', { has_name: !!n }); return toast(n ? `Olá, ${n}!` : 'Nome removido'); }
+  if(a === 'reset') return confirmBox('Apagar todos os treinos, sessões e exercícios personalizados deste navegador?', 'Apagar tudo', () => {
+    const user = S.user, st = S.settings; S = migrate(freshState()); S.user = user; S.settings = st; save(); syncPersonProps(); track('data_reset'); route(); });
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+initAnalytics();
+loadGIS();
+route();
+renderDriveStatus();
+if(!S.settings.onboarded) openOnboarding();
+// PWA: cache offline (só em https, ex.: GitHub Pages)
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+PH() && PH().register({ display_mode: standalone ? 'standalone' : 'browser' });
+window.addEventListener('appinstalled', () => track('app_installed'));
+</script>
+</body>
+</html>
