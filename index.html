@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="LiftMap">
-<title>LiftMap — progressão de carga</title>
+<meta name="apple-mobile-web-app-title" content="StrTracker">
+<title>StrTracker</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -16,29 +16,33 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
+<!-- ============================================================
+     CONFIG — tokens públicos por design (só escrevem / só autorizam a origem)
+     PostHog: Settings → Project → Project token (phc_…)
+     Google:  Google Cloud → Google Auth platform → Clients (….apps.googleusercontent.com)
+     ============================================================ -->
 <script>
-  window.LIFTMAP_POSTHOG = {
+  window.STRTRACKER_POSTHOG = {
     token: 'phc_qHBmQqgv5bYj5Z2j37ms8Xysu6GMgR4veqbkENs82mLU',
-    api_host: 'https://us.i.posthog.com',  
+    api_host: 'https://us.i.posthog.com',
   };
-  // GOOGLE DRIVE — cole o OAuth Client ID (Google Cloud → Google Auth platform → Clients), termina com .apps.googleusercontent.com
-  window.LIFTMAP_GOOGLE = {
+  window.STRTRACKER_GOOGLE = {
     client_id: '294725222718-dntaqgk0ofaa76f9uj28674ar2qtuqa2.apps.googleusercontent.com',
   };
 </script>
 <script>
   (function () {
-    var cfg = window.LIFTMAP_POSTHOG;
-    window.LIFTMAP_PH_ENABLED = !!(cfg && cfg.token && cfg.token.indexOf('phc_COLE') !== 0);
-    if (!window.LIFTMAP_PH_ENABLED) return;
+    var cfg = window.STRTRACKER_POSTHOG;
+    window.STRTRACKER_PH_ENABLED = !!(cfg && cfg.token && cfg.token.indexOf('phc_COLE') !== 0);
+    if (!window.STRTRACKER_PH_ENABLED) return;
     // Snippet oficial do PostHog (carrega o posthog-js do CDN deles e enfileira chamadas até carregar)
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
     posthog.init(cfg.token, {
       api_host: cfg.api_host,
-      defaults: '2026-01-30',          // pacote de padrões recomendado (pageviews em mudança de URL, etc.)
+      defaults: '2026-01-30',
       person_profiles: 'identified_only',
-      capture_exceptions: true,        // Error tracking
-      session_recording: { maskAllInputs: false }, // cargas não são dados sensíveis; facilita assistir os replays
+      capture_exceptions: true,
+      session_recording: { maskAllInputs: false },
     });
   })();
 </script>
@@ -181,17 +185,25 @@
   .empty h3{color:var(--ink);margin-bottom:6px}
   .hide{display:none!important}
 </style>
+<style>
+  .lang-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .lang-seg button{border:1px solid var(--line-2);background:var(--surface-2);border-radius:14px;padding:16px 12px;cursor:pointer;text-align:center;font-weight:700;font-size:16px}
+  .lang-seg button span{display:block;font-size:26px;margin-bottom:4px}
+  .lang-seg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  @media(max-width:420px){ #phPillText{display:none} }
+</style>
 </head>
 <body>
 <div class="app">
   <header class="top">
     <div class="brand">
-      <div class="brand-mark">LM</div>
-      <div><h1>LiftMap</h1><small>progressão de carga por grupo muscular</small></div>
+      <div class="brand-mark">ST</div>
+      <div><h1>StrTracker</h1><small data-i18n="app_tagline"></small></div>
     </div>
     <div class="row" style="flex-wrap:nowrap;gap:6px">
-    <button class="ph-pill" id="cloudBtn" data-action="open-backup" title="Backup no Google Drive" aria-label="Backup no Google Drive"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.4 4.5 4.5 0 0 0 7 18Z"/></svg><span class="dot" id="cloudDot"></span></button>
-    <button class="ph-pill" id="phPill" data-action="open-debug" title="Eventos enviados ao PostHog"><span class="dot"></span><span id="phPillText">PostHog</span></button>
+      <button class="ph-pill" id="langBtn" data-action="toggle-lang" data-i18n-title="lang_btn_title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span id="langBtnText">EN</span></button>
+      <button class="ph-pill" id="cloudBtn" data-action="open-backup" data-i18n-title="backup_btn_title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.4 4.5 4.5 0 0 0 7 18Z"/></svg><span class="dot" id="cloudDot"></span></button>
+      <button class="ph-pill" id="phPill" data-action="open-debug" data-i18n-title="ph_btn_title"><span class="dot"></span><span id="phPillText">PostHog</span></button>
     </div>
   </header>
   <main id="view"></main>
@@ -199,10 +211,10 @@
 
 <nav class="tabs">
   <div class="inner">
-    <a href="#mapa" data-tab="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="4.5" r="2.3"/><path d="M7 9.5h10M12 9v6M12 15l-3 6M12 15l3 6M7 9.5l-2 5M17 9.5l2 5"/></svg>Mapa</a>
-    <a href="#treinos" data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>Treinos</a>
-    <a href="#historico" data-tab="historico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Progresso</a>
-    <a href="#exercicios" data-tab="exercicios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h9"/></svg>Exercícios</a>
+    <a href="#mapa" data-tab="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="4.5" r="2.3"/><path d="M7 9.5h10M12 9v6M12 15l-3 6M12 15l3 6M7 9.5l-2 5M17 9.5l2 5"/></svg><span data-i18n="nav_map"></span></a>
+    <a href="#treinos" data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg><span data-i18n="nav_workouts"></span></a>
+    <a href="#historico" data-tab="historico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg><span data-i18n="nav_progress"></span></a>
+    <a href="#exercicios" data-tab="exercicios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span data-i18n="nav_exercises"></span></a>
   </div>
 </nav>
 
@@ -210,71 +222,325 @@
 
 <script>
 /* =================================================================
-   LiftMap — app de uma página, sem build, dados no localStorage.
-   Seções: 1) dados  2) analytics (PostHog)  3) cálculos
-           4) mapa corporal SVG  5) views  6) modais  7) eventos/rotas
+   StrTracker — app de uma página, sem build, dados no localStorage.
+   Seções: 0) i18n  1) dados  2) analytics  2b) Google Drive  3) cálculos
+           4) mapa SVG  5) views  6) modais  7) rotas/eventos
+
+   REGRA DE I18N: todo texto visível passa por t('chave'). Cada chave em
+   STR tem SEMPRE [inglês, português] — uma mudança nova só entra com os dois.
+   Eventos e propriedades do PostHog ficam em inglês, independentes da UI.
    ================================================================= */
-const APP_VERSION = '1.3.0';
-const STORE_KEY = 'liftmap:v1';
+const APP_VERSION = '2.0.0';
+const STORE_KEY = 'liftmap:v1';   // nome antigo de propósito: trocar apagaria os dados já salvos
+
+/* ---------------- 0) I18N ---------------- */
+const STR = {
+  // geral / cabeçalho / navegação
+  app_tagline:      ['strength progress by muscle group', 'progressão de carga por grupo muscular'],
+  nav_map:          ['Map', 'Mapa'],
+  nav_workouts:     ['Workouts', 'Treinos'],
+  nav_progress:     ['Progress', 'Progresso'],
+  nav_exercises:    ['Exercises', 'Exercícios'],
+  ph_on:            ['PostHog on', 'PostHog ativo'],
+  ph_off:           ['PostHog off', 'PostHog off'],
+  backup_btn_title: ['Google Drive backup', 'Backup no Google Drive'],
+  ph_btn_title:     ['Events sent to PostHog', 'Eventos enviados ao PostHog'],
+  lang_btn_title:   ['Change language (EN/PT)', 'Mudar idioma (EN/PT)'],
+  close:            ['Close', 'Fechar'],
+  cancel:           ['Cancel', 'Cancelar'],
+  confirm:          ['Confirm', 'Confirmar'],
+  del:              ['Delete', 'Excluir'],
+  edit:             ['Edit', 'Editar'],
+  save:             ['Save', 'Salvar'],
+  add:              ['+ Add', '+ Adicionar'],
+  remove:           ['Remove', 'Remover'],
+  move_up:          ['Move up', 'Subir'],
+  move_down:        ['Move down', 'Descer'],
+  continue:         ['Continue', 'Continuar'],
+  skip:             ['Skip', 'Pular'],
+  not_now:          ['Not now', 'Agora não'],
+  loading:          ['loading…', 'carregando…'],
+  language:         ['Language', 'Idioma'],
+  // mapa
+  map_title:        ['Training map', 'Mapa de treino'],
+  period:           ['Period', 'Período'],
+  days:             ['{n} days', '{n} dias'],
+  band_label:       ['Reps', 'Faixa'],
+  band_aria:        ['Rep range', 'Faixa de repetições'],
+  band_all:         ['All', 'Todas'],
+  band_suffix:      [' · {b} reps', ' · {b} reps'],
+  front:            ['Front', 'Frente'],
+  back:             ['Back', 'Costas'],
+  front_aria:       ['Body — front view', 'Corpo — vista frontal'],
+  back_aria:        ['Body — back view', 'Corpo — vista posterior'],
+  fewer_sets:       ['fewer sets', 'menos séries'],
+  more_sets:        ['more sets', 'mais séries'],
+  stat_workouts_7d: ['workouts (7d)', 'treinos (7d)'],
+  stat_sets:        ['sets ({d}d{b})', 'séries ({d}d{b})'],
+  stat_prs:         ['records ({d}d{b})', 'recordes ({d}d{b})'],
+  tap_muscle:       ['Tap a muscle', 'Toque num músculo'],
+  tap_muscle_body:  ['See the exercises for that area, your current load and your record.', 'Veja os exercícios daquela região, sua carga atual e o recorde.'],
+  muscle_tooltip:   ['{m}: {n} sets in {d} days{b}', '{m}: {n} séries em {d} dias{b}'],
+  start_here:       ['Start here', 'Comece por aqui'],
+  start_here_body:  ['Build a workout with your exercises and current loads, or load 8 weeks of sample data to explore the app.', 'Monte um treino com seus exercícios e cargas atuais, ou carregue 8 semanas de exemplo para explorar o app.'],
+  create_workout_btn:['+ Create workout', '+ Criar treino'],
+  restore_drive:    ['Restore from Google Drive', 'Restaurar do Google Drive'],
+  sample_data:      ['Sample data', 'Dados de exemplo'],
+  sets_tag:         ['{n} sets · {d}d', '{n} séries · {d}d'],
+  no_ex_mapped:     ['No exercises mapped.', 'Nenhum exercício mapeado.'],
+  add_ex_for:       ['+ Exercise for {m}', '+ Exercício para {m}'],
+  primary:          ['primary', 'principal'],
+  secondary:        ['secondary', 'secundário'],
+  last_on:          [' · last {d} · {sr}', ' · último {d} · {sr}'],
+  no_records:       [' · no logs yet', ' · sem registros'],
+  no_records_band:  [' · no logs at {b}', ' · sem registros em {b}'],
+  record_x:         ['record {x}', 'recorde {x}'],
+  at_record:        ['at record', 'no recorde'],
+  // treinos
+  saved_workouts:   ['Saved workouts', 'Treinos salvos'],
+  new_workout_btn:  ['+ New workout', '+ Novo treino'],
+  no_workouts:      ['No workouts yet', 'Nenhum treino ainda'],
+  no_workouts_body: ['Create a workout (e.g. “Day A — Legs”) with exercises, sets, reps and load.', 'Crie um treino (ex.: “Treino A — Pernas”) com exercícios, séries, repetições e carga.'],
+  last_done:        ['last: {d}', 'último: {d}'],
+  never_done:       ['never done', 'nunca executado'],
+  log_workout:      ['Log workout', 'Registrar treino'],
+  log_quick:        ['Log a one-off workout', 'Registrar treino avulso'],
+  // progresso
+  progress_title:   ['Progress', 'Progresso'],
+  by_exercise:      ['Progress by exercise', 'Evolução por exercício'],
+  logs_since:       ['{n} logs · since {d}', '{n} registros · desde {d}'],
+  sessions:         ['Sessions', 'Sessões'],
+  no_sessions:      ['No sessions logged', 'Sem sessões registradas'],
+  no_sessions_body: ['Log a workout to start your strength log.', 'Registre um treino para começar o seu log de força.'],
+  one_off:          ['One-off workout', 'Treino avulso'],
+  see_all_sessions: ['See all {n} sessions', 'Ver todas as {n} sessões'],
+  // exercícios / ajustes
+  exercises_title:  ['Exercises', 'Exercícios'],
+  new_exercise_btn: ['+ New exercise', '+ Novo exercício'],
+  search_ex:        ['Search exercises…', 'Buscar exercício…'],
+  your_data:        ['Your data', 'Seus dados'],
+  data_local:       ['Your data is stored in this browser{mem}. Back it up now and then.', 'Os dados ficam salvos neste navegador{mem}. Faça backup de vez em quando.'],
+  mem_only:         [' (storage unavailable — data lives only in this tab)', ' (armazenamento indisponível — dados só nesta aba)'],
+  your_name_label:  ['Your name (identifies you in PostHog)', 'Seu nome (identifica você no PostHog)'],
+  name_ph:          ['e.g. Alex', 'ex.: Lucas'],
+  export_json:      ['Export backup (.json)', 'Exportar backup (.json)'],
+  import_json:      ['Import backup', 'Importar backup'],
+  load_sample:      ['Load sample data', 'Carregar dados de exemplo'],
+  delete_all:       ['Delete everything', 'Apagar tudo'],
+  // modais: treino
+  edit_workout:     ['Edit workout', 'Editar treino'],
+  new_workout:      ['New workout', 'Novo treino'],
+  workout_name:     ['Workout name', 'Nome do treino'],
+  workout_name_ph:  ['e.g. Day A — Legs', 'ex.: Treino A — Pernas'],
+  exercises_l:      ['Exercises', 'Exercícios'],
+  add_first_ex:     ['Add your first exercise below.', 'Adicione o primeiro exercício abaixo.'],
+  load_kg:          ['Load (kg)', 'Carga (kg)'],
+  sets_l:           ['Sets', 'Séries'],
+  reps_l:           ['Reps', 'Reps'],
+  save_workout:     ['Save workout', 'Salvar treino'],
+  name_workout:     ['Give the workout a name', 'Dê um nome ao treino'],
+  add_one_ex:       ['Add at least one exercise', 'Adicione pelo menos um exercício'],
+  workout_saved:    ['Workout saved', 'Treino salvo'],
+  confirm_del_wk:   ['Delete the workout “{n}”? Your session history is kept.', 'Excluir o treino “{n}”? O histórico de sessões é mantido.'],
+  // modais: sessão
+  edit_session:     ['Edit session', 'Editar sessão'],
+  date:             ['Date', 'Data'],
+  prev_entry:       ['previous: {sr} · {kg} · ', 'anterior: {sr} · {kg} · '],
+  add_done_ex:      ['Add the exercises you did.', 'Adicione os exercícios que você fez.'],
+  update_tpl:       ['Update the saved workout with these loads', 'Atualizar as cargas do treino salvo com estes valores'],
+  finish_workout:   ['Finish workout', 'Concluir treino'],
+  session_updated:  ['Session updated', 'Sessão atualizada'],
+  pr_toast:         ['{b}-rep record on {n}: {kg}', 'Recorde {b} reps em {n}: {kg}'],
+  pr_burst:         ['🏆 New record · {b} reps', '🏆 Novo recorde · {b} reps'],
+  workout_logged:   ['Workout logged 💪', 'Treino registrado 💪'],
+  confirm_del_ss:   ['Delete this session from your history?', 'Excluir esta sessão do histórico?'],
+  hint_first:       ['range <b>{b}</b> · first log in this range', 'faixa <b>{b}</b> · primeiro registro nesta faixa'],
+  hint_rec:         ['range <b>{b}</b> · record {kg}', 'faixa <b>{b}</b> · recorde {kg}'],
+  new_record:       ['new record 🏆', 'novo recorde 🏆'],
+  // modais: exercício
+  current_load:     ['current load', 'carga atual'],
+  top_load:         ['heaviest', 'maior carga'],
+  est_1rm:          ['estimated 1RM', '1RM estimado'],
+  rec_by_band:      ['Records by rep range', 'Recordes por faixa de repetições'],
+  th_range:         ['Range', 'Faixa'],
+  th_record:        ['Record', 'Recorde'],
+  th_date:          ['Date', 'Data'],
+  th_e1rm:          ['Est. 1RM', '1RM est.'],
+  th_load:          ['Load', 'Carga'],
+  th_setsreps:      ['Sets × reps', 'Séries × reps'],
+  chart_load:       ['Load per session (kg)', 'Carga por sessão (kg)'],
+  chart_e1rm:       ['Estimated 1RM — Epley (kg)', '1RM estimado — Epley (kg)'],
+  chart_aria:       ['Progress chart', 'Gráfico de progressão'],
+  seg_load:         ['Load', 'Carga'],
+  seg_e1rm:         ['Est. 1RM', '1RM est.'],
+  history:          ['History', 'Histórico'],
+  no_logs:          ['No logs yet', 'Sem registros ainda'],
+  no_logs_body:     ['Log this exercise to start tracking your progress.', 'Registre este exercício para começar a acompanhar a progressão.'],
+  edit_exercise:    ['Edit exercise', 'Editar exercício'],
+  log_now:          ['Log now', 'Registrar agora'],
+  new_exercise:     ['New exercise', 'Novo exercício'],
+  name:             ['Name', 'Nome'],
+  ex_name_ph:       ['e.g. Hack squat', 'ex.: Hack squat'],
+  primary_muscles:  ['Primary muscles', 'Músculos principais'],
+  secondary_muscles:['Secondary muscles', 'Músculos secundários'],
+  secondary_note:   ['(count as half a set on the map)', '(contam meia série no mapa)'],
+  name_exercise:    ['Give the exercise a name', 'Dê um nome ao exercício'],
+  pick_primary:     ['Pick at least one primary muscle', 'Escolha pelo menos um músculo principal'],
+  exercise_saved:   ['Exercise saved', 'Exercício salvo'],
+  confirm_del_ex:   ['Delete “{n}”? Its past logs will no longer show.', 'Excluir “{n}”? Registros antigos deste exercício deixam de aparecer.'],
+  // onboarding
+  ob_lang_title:    ['Choose your language', 'Escolha seu idioma'],
+  ob_lang_sub:      ['You can switch anytime with the globe button at the top.', 'Você pode trocar a qualquer momento no botão de globo no topo.'],
+  ob_welcome:       ['Welcome to StrTracker', 'Bem-vindo ao StrTracker'],
+  ob_pitch:         ['Log your loads, see which muscles you trained and track your strength over time.', 'Registre suas cargas, veja quais músculos você treinou e acompanhe sua força ao longo do tempo.'],
+  ob_name_q:        ['What should we call you?', 'Como podemos te chamar?'],
+  ob_name_ph:       ['Your name', 'Seu nome'],
+  ob_name_note:     ['Your workouts stay on this device. Your name personalizes the app and identifies your usage in product analytics.', 'Seus treinos ficam neste aparelho. O nome serve para personalizar o app e identificar seu uso nas métricas do produto.'],
+  ob_hi:            ['Let’s go, {n}! 💪', 'Bora, {n}! 💪'],
+  ob_how:           ['How do you want to start?', 'Como quer começar?'],
+  ob_create:        ['Create my first workout', 'Criar meu primeiro treino'],
+  ob_create_sub:    ['E.g. Day A — Legs, with exercises, sets and your current load', 'Ex.: Treino A — Pernas, com exercícios, séries e carga atual'],
+  ob_restore_sub:   ['I already used StrTracker on another device', 'Já usava o StrTracker em outro aparelho'],
+  ob_demo:          ['Explore with sample data', 'Explorar com dados de exemplo'],
+  ob_demo_sub:      ['8 weeks of sample workouts to see the map and charts', '8 semanas de treinos fictícios para ver o mapa e os gráficos'],
+  // debug PostHog
+  dbg_title:        ['PostHog events', 'Eventos do PostHog'],
+  dbg_on:           ['Connected. The events below were sent from this tab — check <b>Activity</b> in PostHog.', 'Conectado. Os eventos abaixo foram enviados nesta aba — confira em <b>Activity</b> no PostHog.'],
+  dbg_off:          ['PostHog is <b>not configured</b>: paste the project token at the top of index.html. Events below stay in this panel only.', 'PostHog <b>não configurado</b>: cole o token do projeto no topo do index.html. Os eventos abaixo ficam só neste painel.'],
+  dbg_empty:        ['No events yet. Use the app and come back.', 'Nenhum evento ainda. Use o app e volte aqui.'],
+  // dados
+  import_ok:        ['Backup imported', 'Backup importado'],
+  invalid_file:     ['Invalid file', 'Arquivo inválido'],
+  demo_loaded:      ['8 weeks of sample data loaded', '8 semanas de exemplo carregadas'],
+  demo_a:           ['Day A — Legs', 'Treino A — Pernas'],
+  demo_b:           ['Day B — Chest & triceps', 'Treino B — Peito e tríceps'],
+  demo_c:           ['Day C — Back & biceps', 'Treino C — Costas e bíceps'],
+  hello:            ['Hi, {n}!', 'Olá, {n}!'],
+  name_removed:     ['Name removed', 'Nome removido'],
+  confirm_reset:    ['Delete all workouts, sessions and custom exercises from this browser?', 'Apagar todos os treinos, sessões e exercícios personalizados deste navegador?'],
+  // Google Drive
+  g_fail:           ['Couldn’t connect to Google', 'Não foi possível conectar ao Google'],
+  popup_blocked:    ['Pop-up blocked or closed', 'Pop-up bloqueado ou fechado'],
+  drive_not_cfg:    ['Drive backup isn’t configured', 'Backup no Drive não configurado'],
+  g_offline:        ['No connection to Google', 'Sem conexão com o Google'],
+  g_loading:        ['Loading Google… try again', 'Carregando Google… tente de novo'],
+  backup_saved:     ['Backup saved to Google Drive ☁️', 'Backup salvo no Google Drive ☁️'],
+  g_expired:        ['Google session expired — tap again', 'Sessão do Google expirou — toque de novo'],
+  backup_fail:      ['Couldn’t save to Drive', 'Falha ao salvar no Drive'],
+  no_backup:        ['No StrTracker backup in this Google Drive', 'Nenhum backup do StrTracker neste Google Drive'],
+  restore_title:    ['Restore from Google Drive', 'Restaurar do Google Drive'],
+  st_sessions:      ['sessions', 'sessões'],
+  st_workouts:      ['workouts', 'treinos'],
+  st_custom:        ['your exercises', 'exercícios seus'],
+  backup_from:      ['Backup from <b>{w}</b>.', 'Backup de <b>{w}</b>.'],
+  will_replace:     [' This device has <b>{n} sessions</b>, which will be <b>replaced</b>.', ' Este aparelho tem <b>{n} sessões</b>, que serão <b>substituídas</b>.'],
+  restore_here:     ['Restore on this device', 'Restaurar neste aparelho'],
+  restored:         ['Data restored ✅', 'Dados restaurados ✅'],
+  restore_fail:     ['Couldn’t read the backup', 'Falha ao ler o backup'],
+  drive_title:      ['Google Drive backup', 'Backup no Google Drive'],
+  drive_not_cfg_body:['Not configured yet. Paste the Google Cloud Client ID at the top of <code>index.html</code> (the guide walks you through it).', 'Ainda não configurado. Cole o Client ID do Google Cloud no topo do <code>index.html</code> (o guia explica o passo a passo).'],
+  syncing:          ['syncing…', 'sincronizando…'],
+  connected:        ['connected', 'conectado'],
+  disconnected:     ['disconnected', 'desconectado'],
+  last_backup:      ['Last backup: <b>{w}</b>.', 'Último backup: <b>{w}</b>.'],
+  no_backup_yet:    ['No backup yet.', 'Nenhum backup ainda.'],
+  pending_backup:   ['New workouts not backed up yet.', 'Há treinos novos sem backup.'],
+  drive_explain:    [' The file lives in your Drive as “{f}”; to switch devices, open StrTracker on the new one and tap Restore.', ' O arquivo fica no seu Drive como “{f}”; para trocar de aparelho, abra o StrTracker no novo e toque em Restaurar.'],
+  save_drive_now:   ['Save to Drive now', 'Salvar no Drive agora'],
+  restore_short:    ['Restore from Drive', 'Restaurar do Drive'],
+  auto_backup:      ['auto backup after each workout', 'backup automático após cada treino'],
+  backup_title:     ['Backup', 'Backup'],
+  export_file:      ['Export .json file', 'Exportar arquivo .json'],
+};
+const LANGS = ['en', 'pt'];
+const LOCALES = { en:'en-US', pt:'pt-BR' };
+let LANG = 'en';
+function t(key, vars){
+  const row = STR[key];
+  let s = row ? (row[LANGS.indexOf(LANG)] ?? row[0]) : key;
+  if(vars) s = s.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m);
+  return s;
+}
+const L = () => LOCALES[LANG];
+const defaultLang = () => ((navigator.language || 'en').toLowerCase().startsWith('pt') ? 'pt' : 'en');
+function applyStatic(){
+  document.documentElement.lang = L();
+  document.title = 'StrTracker — ' + t('app_tagline');
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); el.setAttribute('aria-label', t(el.dataset.i18nTitle)); });
+  document.getElementById('langBtnText').textContent = LANG.toUpperCase();
+  const ph = PH(); document.getElementById('phPillText').textContent = ph ? t('ph_on') : t('ph_off');
+}
 
 /* ---------------- 1) DADOS ---------------- */
+// [id-chave, inglês, português]
 const MUSCLES = {
-  chest:{pt:'Peito', side:'front'}, shoulders:{pt:'Ombros', side:'both'}, biceps:{pt:'Bíceps', side:'front'},
-  forearms:{pt:'Antebraços', side:'both'}, abs:{pt:'Abdômen', side:'front'}, obliques:{pt:'Oblíquos', side:'front'},
-  quads:{pt:'Quadríceps', side:'front'}, adductors:{pt:'Adutores', side:'front'}, calves:{pt:'Panturrilhas', side:'both'},
-  traps:{pt:'Trapézio', side:'back'}, back:{pt:'Costas (dorsais)', side:'back'}, triceps:{pt:'Tríceps', side:'back'},
-  lower_back:{pt:'Lombar', side:'back'}, glutes:{pt:'Glúteos', side:'back'}, hamstrings:{pt:'Posteriores de coxa', side:'back'},
+  chest:['Chest','Peito'], shoulders:['Shoulders','Ombros'], biceps:['Biceps','Bíceps'], forearms:['Forearms','Antebraços'],
+  abs:['Abs','Abdômen'], obliques:['Obliques','Oblíquos'], quads:['Quads','Quadríceps'], adductors:['Adductors','Adutores'],
+  calves:['Calves','Panturrilhas'], traps:['Traps','Trapézio'], back:['Back (lats)','Costas (dorsais)'], triceps:['Triceps','Tríceps'],
+  lower_back:['Lower back','Lombar'], glutes:['Glutes','Glúteos'], hamstrings:['Hamstrings','Posteriores de coxa'],
 };
 const MUSCLE_ORDER = ['chest','shoulders','biceps','triceps','forearms','traps','back','lower_back','abs','obliques','glutes','quads','adductors','hamstrings','calves'];
+const mName = k => MUSCLES[k][LANGS.indexOf(LANG)];
 
+// [português (gera o id, não mude), inglês, principais, secundários]
 const DEFAULT_EXERCISES = [
-  ['Supino reto (barra)', ['chest'], ['shoulders','triceps']],
-  ['Supino inclinado (halteres)', ['chest','shoulders'], ['triceps']],
-  ['Crucifixo / peck deck', ['chest'], []],
-  ['Desenvolvimento (halteres)', ['shoulders'], ['triceps']],
-  ['Elevação lateral', ['shoulders'], []],
-  ['Puxada frontal (pulldown)', ['back'], ['biceps']],
-  ['Remada baixa (cabo)', ['back'], ['biceps','traps']],
-  ['Remada curvada (barra)', ['back'], ['biceps','lower_back']],
-  ['Barra fixa', ['back'], ['biceps']],
-  ['Encolhimento', ['traps'], []],
-  ['Rosca direta', ['biceps'], ['forearms']],
-  ['Rosca martelo', ['biceps','forearms'], []],
-  ['Tríceps corda (polia)', ['triceps'], []],
-  ['Tríceps testa', ['triceps'], []],
-  ['Agachamento livre', ['quads','glutes'], ['hamstrings','lower_back','adductors']],
-  ['Leg press 45°', ['quads','glutes'], ['hamstrings','adductors']],
-  ['Cadeira extensora', ['quads'], []],
-  ['Mesa flexora', ['hamstrings'], ['calves']],
-  ['Stiff', ['hamstrings','glutes'], ['lower_back']],
-  ['Levantamento terra', ['lower_back','glutes','hamstrings'], ['traps','quads','forearms','back']],
-  ['Cadeira adutora', ['adductors'], []],
-  ['Elevação pélvica (hip thrust)', ['glutes'], ['hamstrings']],
-  ['Panturrilha em pé', ['calves'], []],
-  ['Abdominal na polia', ['abs'], ['obliques']],
-  ['Prancha', ['abs'], ['obliques','lower_back']],
+  ['Supino reto (barra)', 'Barbell bench press', ['chest'], ['shoulders','triceps']],
+  ['Supino inclinado (halteres)', 'Incline dumbbell press', ['chest','shoulders'], ['triceps']],
+  ['Crucifixo / peck deck', 'Chest fly / pec deck', ['chest'], []],
+  ['Desenvolvimento (halteres)', 'Dumbbell shoulder press', ['shoulders'], ['triceps']],
+  ['Elevação lateral', 'Lateral raise', ['shoulders'], []],
+  ['Puxada frontal (pulldown)', 'Lat pulldown', ['back'], ['biceps']],
+  ['Remada baixa (cabo)', 'Seated cable row', ['back'], ['biceps','traps']],
+  ['Remada curvada (barra)', 'Barbell bent-over row', ['back'], ['biceps','lower_back']],
+  ['Barra fixa', 'Pull-up', ['back'], ['biceps']],
+  ['Encolhimento', 'Shrug', ['traps'], []],
+  ['Rosca direta', 'Barbell curl', ['biceps'], ['forearms']],
+  ['Rosca martelo', 'Hammer curl', ['biceps','forearms'], []],
+  ['Tríceps corda (polia)', 'Cable rope pushdown', ['triceps'], []],
+  ['Tríceps testa', 'Skull crusher', ['triceps'], []],
+  ['Agachamento livre', 'Back squat', ['quads','glutes'], ['hamstrings','lower_back','adductors']],
+  ['Leg press 45°', '45° leg press', ['quads','glutes'], ['hamstrings','adductors']],
+  ['Cadeira extensora', 'Leg extension', ['quads'], []],
+  ['Mesa flexora', 'Lying leg curl', ['hamstrings'], ['calves']],
+  ['Stiff', 'Stiff-leg deadlift', ['hamstrings','glutes'], ['lower_back']],
+  ['Levantamento terra', 'Deadlift', ['lower_back','glutes','hamstrings'], ['traps','quads','forearms','back']],
+  ['Cadeira adutora', 'Hip adduction machine', ['adductors'], []],
+  ['Elevação pélvica (hip thrust)', 'Hip thrust', ['glutes'], ['hamstrings']],
+  ['Panturrilha em pé', 'Standing calf raise', ['calves'], []],
+  ['Abdominal na polia', 'Cable crunch', ['abs'], ['obliques']],
+  ['Prancha', 'Plank', ['abs'], ['obliques','lower_back']],
 ];
 
 const uid = (p='id') => p + '_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
 const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+const EX_NAMES = Object.fromEntries(DEFAULT_EXERCISES.map(([pt,en]) => ['ex_'+slug(pt), [en, pt]]));
+const exName = e => e ? (!e.custom && EX_NAMES[e.id] ? EX_NAMES[e.id][LANGS.indexOf(LANG)] : e.name) : '?';
+const exNameEn = e => e ? (!e.custom && EX_NAMES[e.id] ? EX_NAMES[e.id][0] : e.name) : null;   // analytics: sempre em inglês
 const todayISO = () => new Date().toISOString().slice(0,10);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtKg = n => (Math.round(n*10)/10).toLocaleString('pt-BR') + ' kg';
-const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
-const fmtDateLong = iso => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+const fmtNum = n => (Math.round(n*10)/10).toLocaleString(L());
+const fmtKg = n => fmtNum(n) + ' kg';
+const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString(L(),{day:'2-digit',month:'short'});
+const fmtDateLong = iso => new Date(iso + 'T12:00:00').toLocaleDateString(L(),{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+const fmtDateTime = ms => new Date(ms).toLocaleString(L(), { dateStyle:'medium', timeStyle:'short' });
 
 function freshState(){
   return {
     version:1,
     user:{ id: uid('u'), name:'' },
-    exercises: DEFAULT_EXERCISES.map(([name,p,s]) => ({ id:'ex_'+slug(name), name, primary:p, secondary:s, custom:false })),
+    exercises: DEFAULT_EXERCISES.map(([pt,en,p,s]) => ({ id:'ex_'+slug(pt), name:pt, primary:p, secondary:s, custom:false })),
     workouts: [],
     sessions: [],   // {id, date, workoutId|null, startedAt, finishedAt, entries:[{exerciseId, load, reps, sets}]}
   };
 }
 let memoryOnly = false;
-function migrate(s){ s.settings = { autoBackup:true, lastBackupAt:null, driveFileId:null, driveConnectedOnce:false, backupPending:false,
-  onboarded: !!((s.sessions && s.sessions.length) || (s.user && s.user.name)), ...(s.settings||{}) }; return s; }
+function migrate(s){
+  s.settings = { autoBackup:true, lastBackupAt:null, driveFileId:null, driveConnectedOnce:false, backupPending:false,
+    onboarded: !!((s.sessions && s.sessions.length) || (s.user && s.user.name)), lang: defaultLang(), ...(s.settings||{}) };
+  if(!LANGS.includes(s.settings.lang)) s.settings.lang = 'en';
+  return s;
+}
 function load(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
@@ -283,19 +549,21 @@ function load(){
   return migrate(freshState());
 }
 let S = load();
+LANG = S.settings.lang;
 function save(){ if(memoryOnly) return; try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){ memoryOnly = true; } }
 
 const exById = id => S.exercises.find(e => e.id === id);
 const wkById = id => S.workouts.find(w => w.id === id);
+// treinos de exemplo guardam nameKey e seguem o idioma até o usuário renomear
+const wkName = w => w ? (w.nameKey && STR[w.nameKey] ? t(w.nameKey) : w.name) : '';
 
 /* ---------------- 2) ANALYTICS (PostHog) ----------------
-   Toda captura passa por track() para: (a) manter um padrão de nomes
-   objeto_verbo no passado, (b) alimentar o painel de debug local,
-   (c) não quebrar nada se o PostHog não estiver configurado. */
-const PH = () => (window.LIFTMAP_PH_ENABLED && window.posthog) ? window.posthog : null;
+   Toda captura passa por track(): nomes objeto_verbo em inglês, painel de
+   debug local, e nada quebra se o PostHog não estiver configurado. */
+const PH = () => (window.STRTRACKER_PH_ENABLED && window.posthog) ? window.posthog : null;
 const eventLog = [];
 function track(event, props={}){
-  eventLog.unshift({ event, props, at:new Date().toLocaleTimeString('pt-BR') });
+  eventLog.unshift({ event, props, at:new Date().toLocaleTimeString(L()) });
   if(eventLog.length > 60) eventLog.pop();
   const ph = PH(); if(ph) ph.capture(event, props);
   if(document.getElementById('dbgList')) renderDebugList();
@@ -307,35 +575,41 @@ function syncPersonProps(){
     sessions_count: S.sessions.length,
     custom_exercises_count: S.exercises.filter(e=>e.custom).length,
     last_session_date: S.sessions.length ? S.sessions[S.sessions.length-1].date : null,
+    preferred_language: LANG,
   });
 }
 /* Identidade: o distinct_id é S.user.id (aleatório, gerado no 1º uso e levado no backup).
    O nome é só uma PROPRIEDADE da pessoa — dois "Lucas" continuam sendo duas pessoas. */
 function identifyUser(){
   const ph = PH(); if(!ph || !S.user.name) return;
-  ph.identify(S.user.id, { name:S.user.name }, { first_seen_app_version: APP_VERSION });  // $set, $set_once
+  ph.identify(S.user.id, { name:S.user.name, preferred_language:LANG }, { first_seen_app_version: APP_VERSION });
   syncPersonProps();
 }
 function initAnalytics(){
   const ph = PH();
-  const pill = document.getElementById('phPill');
-  document.getElementById('phPillText').textContent = ph ? 'PostHog ativo' : 'PostHog off';
-  pill.classList.toggle('on', !!ph);
+  document.getElementById('phPill').classList.toggle('on', !!ph);
   if(!ph) return;
-  ph.register({ app_version: APP_VERSION, storage_mode: memoryOnly ? 'memory' : 'localStorage' }); // super properties
+  ph.register({ app_name:'StrTracker', app_version: APP_VERSION, storage_mode: memoryOnly ? 'memory' : 'localStorage', ui_language: LANG });
   identifyUser();
   ph.onFeatureFlags(() => { flags.prCelebration = !!ph.isFeatureEnabled('pr-celebration'); });
 }
 const flags = { prCelebration:false };
+function setLang(lang, source){
+  if(!LANGS.includes(lang)) return;
+  const prev = LANG; LANG = lang; S.settings.lang = lang; save();
+  applyStatic();
+  const ph = PH(); if(ph){ ph.register({ ui_language: LANG }); if(S.user.name) syncPersonProps(); }
+  if(source !== 'onboarding_preview' && (prev !== lang || source === 'onboarding')) track('language_changed', { language:lang, previous_language:prev, source });
+}
 
 /* ---------------- 2b) BACKUP NO GOOGLE DRIVE ----------------
    Google Identity Services (token model) + Drive API v3, escopo drive.file:
    o app só enxerga os arquivos que ele mesmo criou no Drive do usuário.
-   O token fica só na memória (expira em ~1h); nada de senha ou client secret. */
-const GCFG = window.LIFTMAP_GOOGLE || {};
+   A marca appProperties { liftmap:'backup' } fica com o nome antigo para achar backups já feitos. */
+const GCFG = window.STRTRACKER_GOOGLE || {};
 const DRIVE_ENABLED = !!(GCFG.client_id && GCFG.client_id.indexOf('COLE') !== 0);
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-const BACKUP_NAME = 'LiftMap — backup.json';
+const BACKUP_NAME = 'StrTracker — backup.json';
 const drive = { token:null, expiresAt:0, client:null, busy:false, pending:null };
 
 function loadGIS(){
@@ -350,20 +624,20 @@ function initTokenClient(){
     client_id: GCFG.client_id, scope: DRIVE_SCOPE,
     callback: resp => {
       const job = drive.pending; drive.pending = null;
-      if(resp.error){ track('drive_auth_failed', { error: resp.error }); toast('Não foi possível conectar ao Google'); return; }
+      if(resp.error){ track('drive_auth_failed', { error: resp.error }); toast(t('g_fail')); return; }
       drive.token = resp.access_token; drive.expiresAt = Date.now() + (resp.expires_in - 60) * 1000;
       if(!S.settings.driveConnectedOnce){ S.settings.driveConnectedOnce = true; save(); track('drive_connected'); }
       job && job();
     },
-    error_callback: err => { drive.pending = null; track('drive_auth_failed', { error: err?.type || 'popup' }); if(err?.type !== 'popup_closed') toast('Pop-up bloqueado ou fechado'); },
+    error_callback: err => { drive.pending = null; track('drive_auth_failed', { error: err?.type || 'popup' }); if(err?.type !== 'popup_closed') toast(t('popup_blocked')); },
   });
 }
 const driveTokenValid = () => drive.token && Date.now() < drive.expiresAt;
 // Chame SEMPRE a partir de um clique: o Google abre um pop-up de consentimento.
 function withDrive(job){
-  if(!DRIVE_ENABLED){ toast('Backup no Drive não configurado'); return; }
+  if(!DRIVE_ENABLED){ toast(t('drive_not_cfg')); return; }
   if(driveTokenValid()) return job();
-  if(!drive.client){ toast(drive.loadError ? 'Sem conexão com o Google' : 'Carregando Google… tente de novo'); loadGIS(); return; }
+  if(!drive.client){ toast(drive.loadError ? t('g_offline') : t('g_loading')); loadGIS(); return; }
   drive.pending = job;
   drive.client.requestAccessToken({ prompt: S.settings.driveConnectedOnce ? '' : 'consent' });
 }
@@ -389,45 +663,45 @@ async function uploadBackup(trigger){
       catch(e){ if(e.message !== 'http_404') throw e; file = null; }   // arquivo apagado no Drive → cria de novo
     }
     if(!file){
-      const boundary = 'liftmap' + Date.now();
+      const boundary = 'strtracker' + Date.now();
       const meta = { name:BACKUP_NAME, mimeType:'application/json', appProperties:{ liftmap:'backup' } };
       const multipart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`;
       file = await gapi('/upload/drive/v3/files?uploadType=multipart&fields=id', { method:'POST', headers:{'Content-Type':`multipart/related; boundary=${boundary}`}, body:multipart });
     }
     S.settings.driveFileId = file.id; S.settings.lastBackupAt = Date.now(); S.settings.backupPending = false; save();
     track('backup_uploaded', { trigger, sessions_count:S.sessions.length, workouts_count:S.workouts.length, size_kb: Math.round(body.length/1024) });
-    if(trigger === 'manual') toast('Backup salvo no Google Drive ☁️');
+    if(trigger === 'manual') toast(t('backup_saved'));
   }catch(e){
     track('backup_failed', { trigger, stage:'upload', error:e.message });
-    if(trigger === 'manual') toast(e.message === 'auth' ? 'Sessão do Google expirou — toque de novo' : 'Falha ao salvar no Drive');
-    else S.settings.backupPending = true, save();
+    if(trigger === 'manual') toast(e.message === 'auth' ? t('g_expired') : t('backup_fail'));
+    else { S.settings.backupPending = true; save(); }
   }finally{ drive.busy = false; renderDriveStatus(); }
 }
 async function startRestore(){
   drive.busy = true; renderDriveStatus();
   try{
     const file = await findBackupFile();
-    if(!file){ track('backup_restore_viewed', { found:false }); toast('Nenhum backup do LiftMap neste Google Drive'); return; }
+    if(!file){ track('backup_restore_viewed', { found:false }); toast(t('no_backup')); return; }
     const d = JSON.parse(await gapi(`/drive/v3/files/${file.id}?alt=media`, { raw:true }));
     if(!d || d.version !== 1 || !Array.isArray(d.sessions)) throw new Error('format');
     track('backup_restore_viewed', { found:true, backup_sessions:d.sessions.length, local_sessions:S.sessions.length });
-    const when = new Date(d.exportedAt || file.modifiedTime).toLocaleString('pt-BR', { dateStyle:'medium', timeStyle:'short' });
-    openModal(`<div class="modal-head"><h2>Restaurar do Google Drive</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-      <div class="stat-row" style="margin-bottom:12px"><div class="stat"><b>${d.sessions.length}</b><span>sessões</span></div><div class="stat"><b>${d.workouts.length}</b><span>treinos</span></div><div class="stat"><b>${d.exercises.filter(e=>e.custom).length}</b><span>exercícios seus</span></div></div>
-      <p class="muted">Backup de <b>${when}</b>.${S.sessions.length ? ` Este aparelho tem <b>${S.sessions.length} sessões</b>, que serão <b>substituídas</b>.` : ''}</p>
-      <div class="modal-foot"><button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="doRestore">Restaurar neste aparelho</button></div>`,
+    const when = fmtDateTime(Date.parse(d.exportedAt || file.modifiedTime));
+    openModal(`<div class="modal-head"><h2>${t('restore_title')}</h2><button class="btn icon ghost" data-action="close" aria-label="${t('close')}">✕</button></div>
+      <div class="stat-row" style="margin-bottom:12px"><div class="stat"><b>${d.sessions.length}</b><span>${t('st_sessions')}</span></div><div class="stat"><b>${d.workouts.length}</b><span>${t('st_workouts')}</span></div><div class="stat"><b>${d.exercises.filter(e=>e.custom).length}</b><span>${t('st_custom')}</span></div></div>
+      <p class="muted">${t('backup_from', { w:when })}${S.sessions.length ? t('will_replace', { n:S.sessions.length }) : ''}</p>
+      <div class="modal-foot"><button class="btn ghost" data-action="close">${t('cancel')}</button><button class="btn primary" id="doRestore">${t('restore_here')}</button></div>`,
       m => m.querySelector('#doRestore').onclick = () => {
-        const settings = { ...S.settings, driveFileId:file.id, lastBackupAt:Date.parse(d.exportedAt || file.modifiedTime) || Date.now() };
+        const settings = { ...S.settings, driveFileId:file.id, lastBackupAt:Date.parse(d.exportedAt || file.modifiedTime) || Date.now(), lang:LANG, onboarded:true };
         delete d.exportedAt; delete d.appVersion;
         S = migrate(d); S.settings = { ...S.settings, ...settings }; save();
         // mesmo user.id do backup → o PostHog junta este aparelho à mesma pessoa
         identifyUser(); syncPersonProps();
         track('backup_restored', { sessions_count:S.sessions.length, workouts_count:S.workouts.length });
-        closeModal(); toast('Dados restaurados ✅'); location.hash = '#mapa'; route();
+        closeModal(); toast(t('restored')); location.hash = '#mapa'; route();
       });
   }catch(e){
     track('backup_failed', { trigger:'manual', stage:'restore', error:e.message });
-    toast(e.message === 'auth' ? 'Sessão do Google expirou — toque de novo' : 'Falha ao ler o backup');
+    toast(e.message === 'auth' ? t('g_expired') : t('restore_fail'));
   }finally{ drive.busy = false; renderDriveStatus(); }
 }
 function autoBackupAfterChange(){
@@ -436,33 +710,32 @@ function autoBackupAfterChange(){
   else { S.settings.backupPending = true; save(); renderDriveStatus(); }   // sem token: lembra de salvar no próximo toque
 }
 function driveCard(){
-  if(!DRIVE_ENABLED) return `<div class="card" style="margin-top:16px"><div class="mini" style="margin-bottom:8px">Backup no Google Drive</div>
-    <p class="muted" style="margin:0">Ainda não configurado. Cole o Client ID do Google Cloud no topo do <code>index.html</code> (o guia explica o passo a passo).</p></div>`;
-  return `<div class="card" style="margin-top:16px" id="driveCard">${driveCardInner()}</div>`;
+  if(!DRIVE_ENABLED) return `<div class="card" style="margin-top:16px"><div class="mini" style="margin-bottom:8px">${t('drive_title')}</div>
+    <p class="muted" style="margin:0">${t('drive_not_cfg_body')}</p></div>`;
+  return `<div class="card drive-card" style="margin-top:16px">${driveCardInner()}</div>`;
 }
 function driveCardInner(){
-  const st = S.settings, last = st.lastBackupAt ? new Date(st.lastBackupAt).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : null;
-  return `<div class="row" style="margin-bottom:8px"><div class="mini" style="flex:1">Backup no Google Drive</div>
-      <span class="tag ${driveTokenValid()?'pr':''}">${drive.busy ? 'sincronizando…' : driveTokenValid() ? 'conectado' : 'desconectado'}</span></div>
-    <p class="muted" style="margin:0 0 10px">${last ? `Último backup: <b>${last}</b>.` : 'Nenhum backup ainda.'}${st.backupPending ? ' <span style="color:var(--accent)">Há treinos novos sem backup.</span>' : ''} O arquivo fica no seu Drive como “${BACKUP_NAME}”; para trocar de aparelho, abra o LiftMap no novo e toque em Restaurar.</p>
+  const st = S.settings;
+  return `<div class="row" style="margin-bottom:8px"><div class="mini" style="flex:1">${t('drive_title')}</div>
+      <span class="tag ${driveTokenValid()?'pr':''}">${drive.busy ? t('syncing') : driveTokenValid() ? t('connected') : t('disconnected')}</span></div>
+    <p class="muted" style="margin:0 0 10px">${st.lastBackupAt ? t('last_backup', { w:fmtDateTime(st.lastBackupAt) }) : t('no_backup_yet')}${st.backupPending ? ` <span style="color:var(--accent)">${t('pending_backup')}</span>` : ''}${t('drive_explain', { f:BACKUP_NAME })}</p>
     <div class="row">
-      <button class="btn sm primary" data-action="drive-backup" ${drive.busy?'disabled':''}>Salvar no Drive agora</button>
-      <button class="btn sm" data-action="drive-restore" ${drive.busy?'disabled':''}>Restaurar do Drive</button>
-      <label class="row" style="font-size:13px;color:var(--ink-2);cursor:pointer;gap:6px"><input type="checkbox" data-action="drive-auto" ${st.autoBackup?'checked':''} style="width:auto"> backup automático após cada treino</label>
+      <button class="btn sm primary" data-action="drive-backup" ${drive.busy?'disabled':''}>${t('save_drive_now')}</button>
+      <button class="btn sm" data-action="drive-restore" ${drive.busy?'disabled':''}>${t('restore_short')}</button>
+      <label class="row" style="font-size:13px;color:var(--ink-2);cursor:pointer;gap:6px"><input type="checkbox" data-action="drive-auto" ${st.autoBackup?'checked':''} style="width:auto"> ${t('auto_backup')}</label>
     </div>`;
 }
 function renderDriveStatus(){
-  const c = document.getElementById('driveCard'); if(c) c.innerHTML = driveCardInner();
+  document.querySelectorAll('.drive-card').forEach(c => c.innerHTML = driveCardInner());
   const dot = document.getElementById('cloudDot'); if(!dot) return;
   dot.style.background = !DRIVE_ENABLED ? 'var(--ink-3)' : S.settings.backupPending ? 'var(--accent)' : S.settings.lastBackupAt ? 'var(--good)' : 'var(--ink-3)';
 }
 function openBackup(){
-  openModal(`<div class="modal-head"><h2>Backup</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-    ${DRIVE_ENABLED ? `<div id="driveCard">${driveCardInner()}</div>` : driveCard().replace('margin-top:16px','')}
-    <div class="row" style="margin-top:16px"><button class="btn sm ghost" data-action="export">Exportar arquivo .json</button></div>`);
+  openModal(`<div class="modal-head"><h2>${t('backup_title')}</h2><button class="btn icon ghost" data-action="close" aria-label="${t('close')}">✕</button></div>
+    ${DRIVE_ENABLED ? `<div class="drive-card">${driveCardInner()}</div>` : driveCard().replace('margin-top:16px','')}
+    <div class="row" style="margin-top:16px"><button class="btn sm ghost" data-action="export">${t('export_file')}</button></div>`);
   track('backup_panel_opened', { drive_enabled:DRIVE_ENABLED, has_backup: !!S.settings.lastBackupAt });
 }
-
 
 /* ---------------- 3) CÁLCULOS ---------------- */
 const e1rm = (load, reps) => reps <= 1 ? load : load * (1 + reps/30);  // fórmula de Epley
@@ -476,19 +749,18 @@ function lastEntry(exId){ const h = historyFor(exId); return h[h.length-1] || nu
 function bestLoad(exId, exceptSessionId){
   let best = 0; for(const h of historyFor(exId)) if(h.sessionId !== exceptSessionId) best = Math.max(best, +h.load||0); return best;
 }
-/* Faixas de repetição: cada registro cai numa faixa pelo nº de reps da série.
-   Ajuste os limites aqui se quiser outras faixas. */
+/* Faixas de repetição: cada registro cai numa faixa pelo nº de reps da série. */
 const REP_BANDS = [
-  { id:'max',    pt:'Máximo',       short:'1RM',  min:1,  max:1 },
-  { id:'low',    pt:'Baixo volume', short:'2–5',  min:2,  max:5 },
-  { id:'midlow', pt:'Médio-baixo',  short:'6–8',  min:6,  max:8 },
-  { id:'normal', pt:'Normal',       short:'9–12', min:9,  max:12 },
-  { id:'high',   pt:'Alto volume',  short:'13+',  min:13, max:Infinity },
+  { id:'max',    name:['Max','Máximo'],             short:'1RM',  min:1,  max:1 },
+  { id:'low',    name:['Low volume','Baixo volume'], short:'2–5',  min:2,  max:5 },
+  { id:'midlow', name:['Mid-low','Médio-baixo'],     short:'6–8',  min:6,  max:8 },
+  { id:'normal', name:['Normal','Normal'],           short:'9–12', min:9,  max:12 },
+  { id:'high',   name:['High volume','Alto volume'], short:'13+',  min:13, max:Infinity },
 ];
+const bandName = b => b.name[LANGS.indexOf(LANG)];
 const bandOf = reps => REP_BANDS.find(b => +reps >= b.min && +reps <= b.max) || REP_BANDS[REP_BANDS.length-1];
 const bandById = id => REP_BANDS.find(b => b.id === id);
 const inBand = (e, band) => !band || band === 'all' || bandOf(e.reps).id === band;
-// melhor carga por faixa: { low:{load,reps,date}, normal:{...} }
 function bestByBand(exId, exceptSessionId){
   const out = {};
   for(const h of historyFor(exId)){ if(h.sessionId === exceptSessionId) continue;
@@ -512,9 +784,20 @@ function muscleVolume(days, band='all'){
   return vol;
 }
 function heatLevel(v, max){ if(!v) return 0; const r = v/max; return r>.8?5 : r>.6?4 : r>.4?3 : r>.2?2 : 1; }
+// recorde = carga acima do melhor anterior DO MESMO exercício NA MESMA faixa de reps
+function countPRs(days, band='all'){
+  const since = new Date(); since.setDate(since.getDate()-days+1); const sinceISO = since.toISOString().slice(0,10);
+  const best = {}; let n = 0;
+  for(const s of sortedSessions()) for(const e of s.entries){
+    const key = e.exerciseId + '|' + bandOf(e.reps).id, prev = best[key];
+    if(prev !== undefined && +e.load > prev && s.date >= sinceISO && inBand(e, band)) n++;
+    best[key] = Math.max(prev ?? 0, +e.load||0);
+  }
+  return n;
+}
 
 /* ---------------- 4) MAPA CORPORAL (SVG) ----------------
-   viewBox 200x400; cada músculo é desenhado no lado esquerdo e espelhado. */
+   viewBox 200x372; cada músculo é desenhado no lado esquerdo e espelhado. */
 const mirror = d => `<g transform="translate(200,0) scale(-1,1)">${d}</g>`;
 function muscleShape(key, inner){ return `<g class="m-group" data-m="${key}">${inner}${mirror(inner)}</g>`; }
 function bodyBase(){
@@ -530,7 +813,7 @@ function bodyBase(){
   </g>`;
 }
 function frontSVG(){
-  return `<svg viewBox="0 0 200 372" role="img" aria-label="Corpo — vista frontal">${bodyBase()}
+  return `<svg viewBox="0 0 200 372" role="img" data-view="front" aria-label="${t('front_aria')}">${bodyBase()}
     ${muscleShape('shoulders', `<path class="m" data-m="shoulders" d="M64 68 Q52 70 50 86 Q52 98 58 100 Q64 84 76 74 Z"/>`)}
     ${muscleShape('chest', `<path class="m" data-m="chest" d="M99 70 L80 72 Q68 80 66 96 Q76 110 99 104 Z"/>`)}
     ${muscleShape('biceps', `<path class="m" data-m="biceps" d="M56 102 Q50 116 50 134 L60 136 Q66 118 66 104 Z"/>`)}
@@ -543,7 +826,7 @@ function frontSVG(){
   </svg>`;
 }
 function backSVG(){
-  return `<svg viewBox="0 0 200 372" role="img" aria-label="Corpo — vista posterior">${bodyBase()}
+  return `<svg viewBox="0 0 200 372" role="img" data-view="back" aria-label="${t('back_aria')}">${bodyBase()}
     ${muscleShape('traps', `<path class="m" data-m="traps" d="M99 54 L90 62 Q80 66 74 72 Q88 78 99 100 Z"/>`)}
     ${muscleShape('shoulders', `<path class="m" data-m="shoulders" d="M64 68 Q52 70 50 86 Q52 98 58 100 Q64 84 72 74 Z"/>`)}
     ${muscleShape('back', `<path class="m" data-m="back" d="M98 104 Q86 80 74 76 Q66 84 66 98 Q72 124 90 140 L98 140 Z"/>`)}
@@ -559,127 +842,116 @@ function backSVG(){
 /* ---------------- 5) VIEWS ---------------- */
 const ui = { range:7, selected:null, band:'all' };
 const $view = () => document.getElementById('view');
+const bandSuffix = band => band === 'all' ? '' : t('band_suffix', { b:bandById(band).short });
 
 function viewMapa(){
   const vol = muscleVolume(ui.range, ui.band);
   const max = Math.max(1, ...Object.values(vol));
-  const bandLabel = ui.band === 'all' ? '' : ` · ${bandById(ui.band).short} reps`;
+  const bs = bandSuffix(ui.band);
   const weekSessions = S.sessions.filter(s => { const d=new Date(); d.setDate(d.getDate()-6); return s.date >= d.toISOString().slice(0,10); });
   const prs = countPRs(ui.range, ui.band);
   const sel = ui.selected;
   $view().innerHTML = `
-    <div class="section-title"><h2>Mapa de treino</h2>
-      <div class="seg" role="tablist" aria-label="Período">
-        ${[7,30,90].map(d=>`<button class="${ui.range===d?'on':''}" data-action="range" data-days="${d}">${d} dias</button>`).join('')}
+    <div class="section-title"><h2>${t('map_title')}</h2>
+      <div class="seg" role="tablist" aria-label="${t('period')}">
+        ${[7,30,90].map(d=>`<button class="${ui.range===d?'on':''}" data-action="range" data-days="${d}">${t('days',{n:d})}</button>`).join('')}
       </div>
     </div>
     ${S.sessions.length===0 ? onboardingCard() : ''}
-    <div class="row" style="margin:-2px 0 12px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px" role="tablist" aria-label="Faixa de repetições">
-      <span class="mini" style="white-space:nowrap">Faixa</span>
-      <span class="chip ${ui.band==='all'?'on':''}" data-action="band" data-band="all">Todas</span>
-      ${REP_BANDS.map(b=>`<span class="chip ${ui.band===b.id?'on':''}" data-action="band" data-band="${b.id}" title="${b.pt}" style="white-space:nowrap">${b.short}</span>`).join('')}
+    <div class="row" style="margin:-2px 0 12px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px" role="tablist" aria-label="${t('band_aria')}">
+      <span class="mini" style="white-space:nowrap">${t('band_label')}</span>
+      <span class="chip ${ui.band==='all'?'on':''}" data-action="band" data-band="all">${t('band_all')}</span>
+      ${REP_BANDS.map(b=>`<span class="chip ${ui.band===b.id?'on':''}" data-action="band" data-band="${b.id}" title="${bandName(b)}" style="white-space:nowrap">${b.short}</span>`).join('')}
     </div>
     <div class="map-layout">
       <div class="card">
-        <div class="bodies"><figure>${frontSVG()}<figcaption>Frente</figcaption></figure><figure>${backSVG()}<figcaption>Costas</figcaption></figure></div>
-        <div class="legend"><span>menos séries</span><span class="scale">${[0,1,2,3,4,5].map(i=>`<i style="background:var(${i?'--h'+i:'--muscle'})"></i>`).join('')}</span><span>mais séries</span></div>
+        <div class="bodies"><figure>${frontSVG()}<figcaption>${t('front')}</figcaption></figure><figure>${backSVG()}<figcaption>${t('back')}</figcaption></figure></div>
+        <div class="legend"><span>${t('fewer_sets')}</span><span class="scale">${[0,1,2,3,4,5].map(i=>`<i style="background:var(${i?'--h'+i:'--muscle'})"></i>`).join('')}</span><span>${t('more_sets')}</span></div>
       </div>
       <div class="grid" style="align-content:start">
         <div class="stat-row">
-          <div class="stat"><b>${weekSessions.length}</b><span>treinos (7d)</span></div>
-          <div class="stat"><b>${Math.round(Object.values(vol).reduce((a,b)=>a+b,0))}</b><span>séries (${ui.range}d${bandLabel})</span></div>
-          <div class="stat"><b>${prs}</b><span>recordes (${ui.range}d${bandLabel})</span></div>
+          <div class="stat"><b>${weekSessions.length}</b><span>${t('stat_workouts_7d')}</span></div>
+          <div class="stat"><b>${Math.round(Object.values(vol).reduce((a,b)=>a+b,0))}</b><span>${t('stat_sets',{d:ui.range,b:bs})}</span></div>
+          <div class="stat"><b>${prs}</b><span>${t('stat_prs',{d:ui.range,b:bs})}</span></div>
         </div>
         <div class="card" id="musclePanel">${sel ? musclePanel(sel, vol[sel]) : `
-          <div class="empty" style="padding:16px 8px"><h3>Toque num músculo</h3>Veja os exercícios daquela região, sua carga atual e o recorde.</div>`}
+          <div class="empty" style="padding:16px 8px"><h3>${t('tap_muscle')}</h3>${t('tap_muscle_body')}</div>`}
         </div>
       </div>
     </div>`;
-  // pinta o mapa
   document.querySelectorAll('.m').forEach(el => {
     const m = el.dataset.m; el.dataset.h = heatLevel(vol[m], max);
     if(m === sel) el.classList.add('sel');
-    el.innerHTML = `<title>${MUSCLES[m].pt}: ${Math.round(vol[m]*10)/10} séries em ${ui.range} dias${bandLabel}</title>`;
+    el.innerHTML = `<title>${t('muscle_tooltip', { m:mName(m), n:fmtNum(vol[m]), d:ui.range, b:bs })}</title>`;
   });
 }
 function onboardingCard(){
   return `<div class="card" style="margin-bottom:12px;border-color:var(--accent)">
-    <div class="row"><div style="flex:1;min-width:220px"><h3 style="font-size:17px;margin-bottom:4px">Comece por aqui</h3>
-      <span class="muted">Monte um treino com seus exercícios e cargas atuais, ou carregue 8 semanas de exemplo para explorar o app.</span></div>
-      <button class="btn primary" data-action="new-workout">+ Criar treino</button>
-      ${DRIVE_ENABLED ? '<button class="btn" data-action="drive-restore">Restaurar do Google Drive</button>' : ''}
-      <button class="btn" data-action="demo">Dados de exemplo</button></div></div>`;
+    <div class="row"><div style="flex:1;min-width:220px"><h3 style="font-size:17px;margin-bottom:4px">${t('start_here')}</h3>
+      <span class="muted">${t('start_here_body')}</span></div>
+      <button class="btn primary" data-action="new-workout">${t('create_workout_btn')}</button>
+      ${DRIVE_ENABLED ? `<button class="btn" data-action="drive-restore">${t('restore_drive')}</button>` : ''}
+      <button class="btn" data-action="demo">${t('sample_data')}</button></div></div>`;
 }
 function musclePanel(m, v){
   const list = S.exercises.filter(e => e.primary.includes(m) || e.secondary.includes(m))
     .sort((a,b) => (b.primary.includes(m)-a.primary.includes(m)) || ((lastEntry(b.id)?1:0)-(lastEntry(a.id)?1:0)));
-  return `<div class="row" style="margin-bottom:6px"><h3 style="font-size:18px;flex:1">${MUSCLES[m].pt}</h3><span class="tag">${Math.round((v||0)*10)/10} séries · ${ui.range}d${ui.band==='all'?'':' · '+bandById(ui.band).short}</span></div>
-    <div>${list.map(e => exRow(e, e.primary.includes(m), ui.band, true)).join('') || '<p class="faint">Nenhum exercício mapeado.</p>'}</div>
-    <div class="row" style="margin-top:10px"><button class="btn sm" data-action="new-exercise" data-muscle="${m}">+ Exercício para ${MUSCLES[m].pt.toLowerCase()}</button></div>`;
+  return `<div class="row" style="margin-bottom:6px"><h3 style="font-size:18px;flex:1">${mName(m)}</h3><span class="tag">${t('sets_tag',{n:fmtNum(v||0),d:ui.range})}${ui.band==='all'?'':' · '+bandById(ui.band).short}</span></div>
+    <div>${list.map(e => exRow(e, e.primary.includes(m), ui.band, true)).join('') || `<p class="faint">${t('no_ex_mapped')}</p>`}</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-action="new-exercise" data-muscle="${m}">${t('add_ex_for',{m:mName(m).toLowerCase()})}</button></div>`;
 }
 function exRow(e, isPrimary=true, band='all', showBands=false){
   const hist = historyFor(e.id).filter(x => inBand(x, band));
   const last = hist[hist.length-1] || null, best = hist.reduce((a,x)=>Math.max(a,+x.load||0),0);
   const chips = showBands ? bandChips(e.id, band) : '';
   return `<div class="ex-row clickable" data-action="open-exercise" data-id="${e.id}">
-    <div style="flex:1;min-width:0"><div class="name">${esc(e.name)}</div>
-      <div class="meta">${isPrimary?'principal':'secundário'}${last?` · último ${fmtDate(last.date)} · ${last.sets}×${last.reps}`:(band==='all'?' · sem registros':` · sem registros em ${bandById(band).short}`)}</div>
+    <div style="flex:1;min-width:0"><div class="name">${esc(exName(e))}</div>
+      <div class="meta">${isPrimary?t('primary'):t('secondary')}${last ? t('last_on',{d:fmtDate(last.date), sr:`${last.sets}×${last.reps}`}) : (band==='all' ? t('no_records') : t('no_records_band',{b:bandById(band).short}))}</div>
       ${chips?`<div class="row" style="gap:4px;margin-top:5px">${chips}</div>`:''}</div>
-    ${last?`<div style="text-align:right"><div class="load">${fmtKg(last.load)}</div>${best>last.load?`<div class="meta">recorde ${fmtKg(best)}</div>`:(best?'<span class="tag pr">no recorde</span>':'')}</div>`:''}
+    ${last?`<div style="text-align:right"><div class="load">${fmtKg(last.load)}</div>${best>last.load?`<div class="meta">${t('record_x',{x:fmtKg(best)})}</div>`:(best?`<span class="tag pr">${t('at_record')}</span>`:'')}</div>`:''}
   </div>`;
-}
-// recorde = carga acima do melhor anterior DO MESMO exercício NA MESMA faixa de reps
-function countPRs(days, band='all'){
-  const since = new Date(); since.setDate(since.getDate()-days+1); const sinceISO = since.toISOString().slice(0,10);
-  const best = {}; let n = 0;
-  for(const s of sortedSessions()) for(const e of s.entries){
-    const key = e.exerciseId + '|' + bandOf(e.reps).id, prev = best[key];
-    if(prev !== undefined && +e.load > prev && s.date >= sinceISO && inBand(e, band)) n++;
-    best[key] = Math.max(prev ?? 0, +e.load||0);
-  }
-  return n;
 }
 
 function viewTreinos(){
   $view().innerHTML = `
-    <div class="section-title"><h2>Treinos salvos</h2><button class="btn primary" data-action="new-workout">+ Novo treino</button></div>
-    ${S.workouts.length===0 ? `<div class="card empty"><h3>Nenhum treino ainda</h3>Crie um treino (ex.: “Treino A — Pernas”) com exercícios, séries, repetições e carga.<div style="margin-top:12px"><button class="btn primary" data-action="new-workout">+ Criar treino</button></div></div>` : ''}
+    <div class="section-title"><h2>${t('saved_workouts')}</h2><button class="btn primary" data-action="new-workout">${t('new_workout_btn')}</button></div>
+    ${S.workouts.length===0 ? `<div class="card empty"><h3>${t('no_workouts')}</h3>${t('no_workouts_body')}<div style="margin-top:12px"><button class="btn primary" data-action="new-workout">${t('create_workout_btn')}</button></div></div>` : ''}
     <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
       ${S.workouts.map(w => {
         const last = sortedSessions().filter(s=>s.workoutId===w.id).pop();
         const muscles = [...new Set(w.items.flatMap(i => exById(i.exerciseId)?.primary || []))];
         return `<div class="card wk">
-          <div class="wk-head"><h3 style="flex:1">${esc(w.name)}</h3><button class="btn sm ghost" data-action="edit-workout" data-id="${w.id}">Editar</button></div>
-          <div class="row">${muscles.slice(0,5).map(m=>`<span class="tag">${MUSCLES[m].pt}</span>`).join('')}</div>
-          <div class="wk-items">${w.items.map(i => { const ex = exById(i.exerciseId); return ex ? `<div><span>${esc(ex.name)}</span><b>${i.sets}×${i.reps} · ${fmtKg(i.load)}</b></div>` : ''; }).join('')}</div>
-          <div class="row" style="margin-top:4px"><span class="faint" style="font-size:12.5px">${last?`último: ${fmtDate(last.date)}`:'nunca executado'}</span><span class="spacer"></span>
-            <button class="btn primary sm" data-action="start-session" data-id="${w.id}">Registrar treino</button></div>
+          <div class="wk-head"><h3 style="flex:1">${esc(wkName(w))}</h3><button class="btn sm ghost" data-action="edit-workout" data-id="${w.id}">${t('edit')}</button></div>
+          <div class="row">${muscles.slice(0,5).map(m=>`<span class="tag">${mName(m)}</span>`).join('')}</div>
+          <div class="wk-items">${w.items.map(i => { const ex = exById(i.exerciseId); return ex ? `<div><span>${esc(exName(ex))}</span><b>${i.sets}×${i.reps} · ${fmtKg(i.load)}</b></div>` : ''; }).join('')}</div>
+          <div class="row" style="margin-top:4px"><span class="faint" style="font-size:12.5px">${last?t('last_done',{d:fmtDate(last.date)}):t('never_done')}</span><span class="spacer"></span>
+            <button class="btn primary sm" data-action="start-session" data-id="${w.id}">${t('log_workout')}</button></div>
         </div>`; }).join('')}
     </div>
-    <div class="row" style="margin-top:16px"><button class="btn sm ghost" data-action="start-session" data-id="">Registrar treino avulso</button></div>`;
+    <div class="row" style="margin-top:16px"><button class="btn sm ghost" data-action="start-session" data-id="">${t('log_quick')}</button></div>`;
 }
 
 function viewHistorico(){
   const used = [...new Set(S.sessions.flatMap(s=>s.entries.map(e=>e.exerciseId)))].map(exById).filter(Boolean);
   const allSessions = sortedSessions().reverse(); const sessions = allSessions.slice(0, ui.showAll ? undefined : 12);
   $view().innerHTML = `
-    <div class="section-title"><h2>Progresso</h2></div>
-    ${used.length ? `<div class="card" style="margin-bottom:12px"><div class="mini" style="margin-bottom:8px">Evolução por exercício</div>
-      <div class="grid">${used.sort((a,b)=>a.name.localeCompare(b.name)).map(e => {
+    <div class="section-title"><h2>${t('progress_title')}</h2></div>
+    ${used.length ? `<div class="card" style="margin-bottom:12px"><div class="mini" style="margin-bottom:8px">${t('by_exercise')}</div>
+      <div class="grid">${used.sort((a,b)=>exName(a).localeCompare(exName(b), L())).map(e => {
         const h = historyFor(e.id), first = h[0], last = h[h.length-1];
         const delta = first && first.load ? Math.round((last.load-first.load)/first.load*100) : 0;
-        return `<div class="ex-row clickable" data-action="open-exercise" data-id="${e.id}"><div style="flex:1"><div class="name">${esc(e.name)}</div>
-          <div class="meta">${h.length} registros · desde ${fmtDate(first.date)}</div></div>
+        return `<div class="ex-row clickable" data-action="open-exercise" data-id="${e.id}"><div style="flex:1"><div class="name">${esc(exName(e))}</div>
+          <div class="meta">${t('logs_since',{n:h.length, d:fmtDate(first.date)})}</div></div>
           ${sparkline(h.map(x=>+x.load))}
           <div style="text-align:right;min-width:86px"><div class="load">${fmtKg(last.load)}</div><div class="meta" style="color:${delta>0?'var(--good)':'var(--ink-3)'}">${delta>0?'+':''}${delta}%</div></div></div>`; }).join('')}</div></div>` : ''}
-    <div class="mini" style="margin:4px 0 8px">Sessões</div>
-    ${sessions.length===0 ? `<div class="card empty"><h3>Sem sessões registradas</h3>Registre um treino para começar o seu log de força.</div>` : ''}
+    <div class="mini" style="margin:4px 0 8px">${t('sessions')}</div>
+    ${sessions.length===0 ? `<div class="card empty"><h3>${t('no_sessions')}</h3>${t('no_sessions_body')}</div>` : ''}
     <div class="grid">${sessions.map(s => `<div class="card">
-      <div class="ss-head"><div><b>${esc(s.workoutId && wkById(s.workoutId) ? wkById(s.workoutId).name : 'Treino avulso')}</b><div class="faint" style="font-size:12.5px">${fmtDateLong(s.date)}</div></div>
-        <button class="btn sm ghost" data-action="edit-session" data-id="${s.id}">Editar</button></div>
-      <div class="wk-items" style="margin-top:8px">${s.entries.map(e=>{const ex=exById(e.exerciseId);return ex?`<div><span>${esc(ex.name)}</span><b>${e.sets}×${e.reps} · ${fmtKg(e.load)}</b></div>`:''}).join('')}</div>
+      <div class="ss-head"><div><b>${esc(s.workoutId && wkById(s.workoutId) ? wkName(wkById(s.workoutId)) : t('one_off'))}</b><div class="faint" style="font-size:12.5px">${fmtDateLong(s.date)}</div></div>
+        <button class="btn sm ghost" data-action="edit-session" data-id="${s.id}">${t('edit')}</button></div>
+      <div class="wk-items" style="margin-top:8px">${s.entries.map(e=>{const ex=exById(e.exerciseId);return ex?`<div><span>${esc(exName(ex))}</span><b>${e.sets}×${e.reps} · ${fmtKg(e.load)}</b></div>`:''}).join('')}</div>
     </div>`).join('')}</div>
-    ${allSessions.length > sessions.length ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn sm" data-action="show-all">Ver todas as ${allSessions.length} sessões</button></div>` : ''}`;
+    ${allSessions.length > sessions.length ? `<div class="row" style="justify-content:center;margin-top:12px"><button class="btn sm" data-action="show-all">${t('see_all_sessions',{n:allSessions.length})}</button></div>` : ''}`;
 }
 function sparkline(vals){
   if(vals.length < 2) return '<svg width="80" height="28"></svg>';
@@ -691,24 +963,26 @@ function sparkline(vals){
 function viewExercicios(){
   const q = (ui.exQuery||'').toLowerCase();
   $view().innerHTML = `
-    <div class="section-title"><h2>Exercícios</h2><button class="btn primary" data-action="new-exercise">+ Novo exercício</button></div>
-    <div style="margin-bottom:12px"><input type="text" id="exSearch" placeholder="Buscar exercício…" value="${esc(ui.exQuery||'')}"></div>
+    <div class="section-title"><h2>${t('exercises_title')}</h2><button class="btn primary" data-action="new-exercise">${t('new_exercise_btn')}</button></div>
+    <div style="margin-bottom:12px"><input type="text" id="exSearch" placeholder="${t('search_ex')}" value="${esc(ui.exQuery||'')}"></div>
     <div class="grid">${MUSCLE_ORDER.map(m => {
-      const list = S.exercises.filter(e => e.primary[0]===m && e.name.toLowerCase().includes(q));
-      return list.length ? `<div class="card"><div class="mini" style="margin-bottom:4px">${MUSCLES[m].pt}</div>${list.map(e=>exRow(e)).join('')}</div>` : '';
+      const list = S.exercises.filter(e => e.primary[0]===m && exName(e).toLowerCase().includes(q));
+      return list.length ? `<div class="card"><div class="mini" style="margin-bottom:4px">${mName(m)}</div>${list.map(e=>exRow(e)).join('')}</div>` : '';
     }).join('')}</div>
-    <div class="card" style="margin-top:16px"><div class="mini" style="margin-bottom:8px">Seus dados</div>
-      <p class="muted" style="margin:0 0 10px">Os dados ficam salvos neste navegador${memoryOnly?' (armazenamento indisponível — dados só nesta aba)':''}. Faça backup de vez em quando.</p>
-      <div class="row">
-        <label class="f" style="flex:1;min-width:200px">Seu nome (usado para identificar você no PostHog)
-          <div class="row" style="flex-wrap:nowrap"><input type="text" id="userName" value="${esc(S.user.name)}" placeholder="ex.: Lucas"><button class="btn" data-action="save-name">Salvar</button></div></label>
+    <div class="card" style="margin-top:16px"><div class="mini" style="margin-bottom:8px">${t('your_data')}</div>
+      <p class="muted" style="margin:0 0 10px">${t('data_local',{mem: memoryOnly ? t('mem_only') : ''})}</p>
+      <div class="row" style="align-items:flex-end">
+        <label class="f" style="flex:1;min-width:200px">${t('your_name_label')}
+          <div class="row" style="flex-wrap:nowrap"><input type="text" id="userName" value="${esc(S.user.name)}" placeholder="${t('name_ph')}"><button class="btn" data-action="save-name">${t('save')}</button></div></label>
+        <div class="f"><span style="font-size:13px;color:var(--ink-2);font-weight:500">${t('language')}</span>
+          <div class="seg">${LANGS.map(l=>`<button class="${LANG===l?'on':''}" data-action="set-lang" data-lang="${l}">${l==='en'?'English':'Português'}</button>`).join('')}</div></div>
       </div>
       <div class="row" style="margin-top:12px">
-        <button class="btn sm" data-action="export">Exportar backup (.json)</button>
-        <label class="btn sm" style="cursor:pointer">Importar backup<input type="file" accept="application/json" id="importFile" class="hide"></label>
-        <button class="btn sm" data-action="demo">Carregar dados de exemplo</button>
+        <button class="btn sm" data-action="export">${t('export_json')}</button>
+        <label class="btn sm" style="cursor:pointer">${t('import_json')}<input type="file" accept="application/json" id="importFile" class="hide"></label>
+        <button class="btn sm" data-action="demo">${t('load_sample')}</button>
         <span class="spacer"></span>
-        <button class="btn sm danger" data-action="reset">Apagar tudo</button>
+        <button class="btn sm danger" data-action="reset">${t('delete_all')}</button>
       </div></div>
     ${driveCard()}`;
   const inp = document.getElementById('exSearch');
@@ -718,32 +992,34 @@ function viewExercicios(){
 
 /* ---------------- 6) MODAIS ---------------- */
 const layer = () => document.getElementById('layer');
+let modalRerender = null;   // permite redesenhar o modal aberto ao trocar de idioma
 function openModal(html, onMount){
   layer().innerHTML = `<div class="scrim" data-action="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
   document.body.style.overflow = 'hidden';
+  modalRerender = null;
   onMount && onMount(layer().querySelector('.modal'));
 }
-function closeModal(){ layer().innerHTML = ''; document.body.style.overflow = ''; releaseWakeLock(); }
+function closeModal(){ layer().innerHTML = ''; document.body.style.overflow = ''; modalRerender = null; releaseWakeLock(); }
+const closeBtn = () => `<button class="btn icon ghost" data-action="close" aria-label="${t('close')}">✕</button>`;
 /* Mantém a tela ligada enquanto você registra o treino (Screen Wake Lock API) */
 let wakeLock = null;
 async function keepScreenOn(){ try{ if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); } }catch(e){} }
 function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null; }
 function confirmBox(msg, okLabel, onOk){
-  openModal(`<div class="modal-head"><h2>Confirmar</h2></div><p class="muted">${msg}</p>
-    <div class="modal-foot"><button class="btn ghost" data-action="close">Cancelar</button><button class="btn danger" id="okBtn">${okLabel}</button></div>`,
+  openModal(`<div class="modal-head"><h2>${t('confirm')}</h2></div><p class="muted">${msg}</p>
+    <div class="modal-foot"><button class="btn ghost" data-action="close">${t('cancel')}</button><button class="btn danger" id="okBtn">${okLabel}</button></div>`,
     m => m.querySelector('#okBtn').onclick = () => { closeModal(); onOk(); });
 }
-function toast(msg){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const t = document.createElement('div'); t.className='toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 2400); }
+function toast(msg){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const el = document.createElement('div'); el.className='toast'; el.textContent = msg; document.body.appendChild(el); setTimeout(()=>el.remove(), 2400); }
 function celebrate(pr){
   const c = document.createElement('div'); c.className = 'celebrate';
-  c.innerHTML = `<div class="burst">🏆 Novo recorde · ${pr.band.short} reps<b>${esc(pr.name)}</b>${fmtKg(pr.previous)} → ${fmtKg(pr.load)}</div>`;
+  c.innerHTML = `<div class="burst">${t('pr_burst',{b:pr.band.short})}<b>${esc(pr.name)}</b>${fmtKg(pr.previous)} → ${fmtKg(pr.load)}</div>`;
   document.body.appendChild(c); setTimeout(()=>c.remove(), 2600);
 }
-
 function exerciseOptions(selectedId){
   return MUSCLE_ORDER.map(m => {
     const list = S.exercises.filter(e=>e.primary[0]===m); if(!list.length) return '';
-    return `<optgroup label="${MUSCLES[m].pt}">${list.map(e=>`<option value="${e.id}" ${e.id===selectedId?'selected':''}>${esc(e.name)}</option>`).join('')}</optgroup>`;
+    return `<optgroup label="${mName(m)}">${list.map(e=>`<option value="${e.id}" ${e.id===selectedId?'selected':''}>${esc(exName(e))}</option>`).join('')}</optgroup>`;
   }).join('');
 }
 function stepper(name, value, step){
@@ -754,18 +1030,20 @@ function stepper(name, value, step){
 function openWorkoutEditor(id){
   const existing = id ? wkById(id) : null;
   const draft = existing ? JSON.parse(JSON.stringify(existing)) : { id:uid('wk'), name:'', items:[] };
+  if(existing && existing.nameKey) draft.name = wkName(existing);
+  let pull = () => {};
   const render = (m) => {
-    m.innerHTML = `<div class="modal-head"><h2>${existing?'Editar treino':'Novo treino'}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-      <label class="f">Nome do treino<input type="text" id="wkName" value="${esc(draft.name)}" placeholder="ex.: Treino A — Pernas"></label>
-      <div class="mini" style="margin:16px 0 8px">Exercícios</div>
+    m.innerHTML = `<div class="modal-head"><h2>${existing?t('edit_workout'):t('new_workout')}</h2>${closeBtn()}</div>
+      <label class="f">${t('workout_name')}<input type="text" id="wkName" value="${esc(draft.name)}" placeholder="${t('workout_name_ph')}"></label>
+      <div class="mini" style="margin:16px 0 8px">${t('exercises_l')}</div>
       <div class="grid" id="wkItems">${draft.items.map((it,i) => `<div class="set-row" data-i="${i}">
         <div class="row" style="flex-wrap:nowrap"><select data-f="exerciseId">${exerciseOptions(it.exerciseId)}</select>
-          <button class="btn icon sm ghost" data-move="-1" data-i="${i}" aria-label="Subir">↑</button><button class="btn icon sm ghost" data-move="1" data-i="${i}" aria-label="Descer">↓</button><button class="btn icon sm danger" data-remove="${i}" aria-label="Remover">✕</button></div>
-        <div class="set-inputs"><label class="f">Carga (kg)${stepper('load_'+i, it.load, 2.5)}</label><label class="f">Séries<input type="number" min="1" data-f="sets" value="${it.sets}"></label><label class="f">Reps<input type="number" min="1" data-f="reps" value="${it.reps}"></label></div>
-      </div>`).join('') || '<p class="faint" style="margin:0">Adicione o primeiro exercício abaixo.</p>'}</div>
-      <div class="row" style="margin-top:10px"><select id="addEx">${exerciseOptions()}</select><button class="btn" id="addExBtn">+ Adicionar</button></div>
-      <div class="modal-foot">${existing?'<button class="btn danger" id="delWk">Excluir</button><span class="spacer"></span>':''}<button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="saveWk">Salvar treino</button></div>`;
-    const pull = () => {
+          <button class="btn icon sm ghost" data-move="-1" data-i="${i}" aria-label="${t('move_up')}">↑</button><button class="btn icon sm ghost" data-move="1" data-i="${i}" aria-label="${t('move_down')}">↓</button><button class="btn icon sm danger" data-remove="${i}" aria-label="${t('remove')}">✕</button></div>
+        <div class="set-inputs"><label class="f">${t('load_kg')}${stepper('load_'+i, it.load, 2.5)}</label><label class="f">${t('sets_l')}<input type="number" min="1" data-f="sets" value="${it.sets}"></label><label class="f">${t('reps_l')}<input type="number" min="1" data-f="reps" value="${it.reps}"></label></div>
+      </div>`).join('') || `<p class="faint" style="margin:0">${t('add_first_ex')}</p>`}</div>
+      <div class="row" style="margin-top:10px"><select id="addEx">${exerciseOptions()}</select><button class="btn" id="addExBtn">${t('add')}</button></div>
+      <div class="modal-foot">${existing?`<button class="btn danger" id="delWk">${t('del')}</button><span class="spacer"></span>`:''}<button class="btn ghost" data-action="close">${t('cancel')}</button><button class="btn primary" id="saveWk">${t('save_workout')}</button></div>`;
+    pull = () => {
       draft.name = m.querySelector('#wkName').value.trim();
       m.querySelectorAll('#wkItems .set-row').forEach(row => { const it = draft.items[+row.dataset.i];
         it.exerciseId = row.querySelector('[data-f=exerciseId]').value;
@@ -777,15 +1055,17 @@ function openWorkoutEditor(id){
     m.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { pull(); draft.items.splice(+b.dataset.remove,1); render(m); });
     m.querySelectorAll('[data-move]').forEach(b => b.onclick = () => { pull(); const i=+b.dataset.i, j=i+(+b.dataset.move); if(j<0||j>=draft.items.length) return; [draft.items[i],draft.items[j]]=[draft.items[j],draft.items[i]]; render(m); });
     m.querySelector('#saveWk').onclick = () => { pull();
-      if(!draft.name){ m.querySelector('#wkName').focus(); toast('Dê um nome ao treino'); return; }
-      if(!draft.items.length){ toast('Adicione pelo menos um exercício'); return; }
+      if(!draft.name){ m.querySelector('#wkName').focus(); toast(t('name_workout')); return; }
+      if(!draft.items.length){ toast(t('add_one_ex')); return; }
+      if(existing && existing.nameKey && draft.name !== t(existing.nameKey)){ delete existing.nameKey; delete draft.nameKey; }   // renomeado: vira nome do usuário
       if(existing){ Object.assign(existing, draft); track('workout_updated', { workout_id:draft.id, exercise_count:draft.items.length }); }
       else { draft.createdAt = Date.now(); S.workouts.push(draft); track('workout_created', { workout_id:draft.id, exercise_count:draft.items.length, muscle_groups:[...new Set(draft.items.flatMap(i=>exById(i.exerciseId)?.primary||[]))] }); }
-      save(); syncPersonProps(); closeModal(); toast('Treino salvo'); route(); autoBackupAfterChange(); };
-    if(existing) m.querySelector('#delWk').onclick = () => confirmBox(`Excluir o treino “${esc(existing.name)}”? O histórico de sessões é mantido.`, 'Excluir', () => {
+      save(); syncPersonProps(); closeModal(); toast(t('workout_saved')); route(); autoBackupAfterChange(); };
+    if(existing) m.querySelector('#delWk').onclick = () => confirmBox(t('confirm_del_wk',{n:esc(wkName(existing))}), t('del'), () => {
       S.workouts = S.workouts.filter(w=>w.id!==existing.id); save(); syncPersonProps(); track('workout_deleted', { workout_id:existing.id }); route(); });
   };
   openModal('', render);
+  modalRerender = m => { const before = draft.name; pull(); if(existing && existing.nameKey && draft.name === before) draft.name = wkName(existing); render(m); };
   track('workout_editor_opened', { mode: existing ? 'edit' : 'create' });
 }
 
@@ -802,62 +1082,64 @@ function openSession({ workoutId=null, sessionId=null, exerciseId=null, source='
         return { exerciseId:it.exerciseId, load: it.load ?? last?.load ?? 0, sets: it.sets ?? last?.sets ?? 3, reps: it.reps ?? last?.reps ?? 10 }; }) };
     track('session_started', { source, workout_id: draft.workoutId, planned_exercise_count: draft.entries.length });
   }
+  let pull = () => {};
   const render = (m) => {
-    m.innerHTML = `<div class="modal-head"><h2>${existing?'Editar sessão':(wk?esc(wk.name):'Treino avulso')}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-      <label class="f" style="max-width:200px">Data<input type="date" id="ssDate" value="${draft.date}"></label>
+    m.innerHTML = `<div class="modal-head"><h2>${existing?t('edit_session'):(wk?esc(wkName(wk)):t('one_off'))}</h2>${closeBtn()}</div>
+      <label class="f" style="max-width:200px">${t('date')}<input type="date" id="ssDate" value="${draft.date}"></label>
       <div class="grid" id="ssItems" style="margin-top:14px">${draft.entries.map((e,i) => { const ex = exById(e.exerciseId); const last = lastEntry(e.exerciseId);
         return `<div class="set-row" data-i="${i}">
-          <div class="row" style="flex-wrap:nowrap"><b style="flex:1">${esc(ex?.name||'?')}</b><button class="btn icon sm danger" data-remove="${i}" aria-label="Remover">✕</button></div>
-          <div class="faint" style="font-size:12.5px;margin-top:-4px">${last && !existing ? `anterior: ${last.sets}×${last.reps} · ${fmtKg(last.load)} · ` : ''}<span data-hint="${i}">${sessionHint(e, draft.id)}</span></div>
-          <div class="set-inputs"><label class="f">Carga (kg)${stepper('load_'+i, e.load, 2.5)}</label><label class="f">Séries<input type="number" min="1" data-f="sets" value="${e.sets}"></label><label class="f">Reps<input type="number" min="1" data-f="reps" value="${e.reps}"></label></div>
-        </div>`; }).join('') || '<p class="faint" style="margin:0">Adicione os exercícios que você fez.</p>'}</div>
-      <div class="row" style="margin-top:10px"><select id="addEx">${exerciseOptions()}</select><button class="btn" id="addExBtn">+ Adicionar</button></div>
-      ${wk && !existing ? `<label class="row" style="margin-top:14px;font-size:13.5px;color:var(--ink-2);cursor:pointer"><input type="checkbox" id="updTpl" checked style="width:auto"> Atualizar as cargas do treino salvo com estes valores</label>`:''}
-      <div class="modal-foot">${existing?'<button class="btn danger" id="delSs">Excluir</button><span class="spacer"></span>':''}<button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="saveSs">${existing?'Salvar':'Concluir treino'}</button></div>`;
+          <div class="row" style="flex-wrap:nowrap"><b style="flex:1">${esc(exName(ex))}</b><button class="btn icon sm danger" data-remove="${i}" aria-label="${t('remove')}">✕</button></div>
+          <div class="faint" style="font-size:12.5px;margin-top:-4px">${last && !existing ? t('prev_entry',{sr:`${last.sets}×${last.reps}`, kg:fmtKg(last.load)}) : ''}<span data-hint="${i}">${sessionHint(e, draft.id)}</span></div>
+          <div class="set-inputs"><label class="f">${t('load_kg')}${stepper('load_'+i, e.load, 2.5)}</label><label class="f">${t('sets_l')}<input type="number" min="1" data-f="sets" value="${e.sets}"></label><label class="f">${t('reps_l')}<input type="number" min="1" data-f="reps" value="${e.reps}"></label></div>
+        </div>`; }).join('') || `<p class="faint" style="margin:0">${t('add_done_ex')}</p>`}</div>
+      <div class="row" style="margin-top:10px"><select id="addEx">${exerciseOptions()}</select><button class="btn" id="addExBtn">${t('add')}</button></div>
+      ${wk && !existing ? `<label class="row" style="margin-top:14px;font-size:13.5px;color:var(--ink-2);cursor:pointer"><input type="checkbox" id="updTpl" ${draft.updTpl===false?'':'checked'} style="width:auto"> ${t('update_tpl')}</label>`:''}
+      <div class="modal-foot">${existing?`<button class="btn danger" id="delSs">${t('del')}</button><span class="spacer"></span>`:''}<button class="btn ghost" data-action="close">${t('cancel')}</button><button class="btn primary" id="saveSs">${existing?t('save'):t('finish_workout')}</button></div>`;
     m.querySelectorAll('#ssItems .set-row').forEach(row => {
       const upd = () => { const i = +row.dataset.i, e = { ...draft.entries[i], load: +row.querySelector(`[name=load_${i}]`).value || 0, reps: +row.querySelector('[data-f=reps]').value || 1 };
         row.querySelector('[data-hint]').innerHTML = sessionHint(e, draft.id); };
       row.addEventListener('input', upd); row.addEventListener('click', ev => { if(ev.target.closest('[data-step]')) setTimeout(upd, 0); });
     });
-    const pull = () => { draft.date = m.querySelector('#ssDate').value || todayISO();
+    pull = () => { draft.date = m.querySelector('#ssDate').value || todayISO();
+      const u = m.querySelector('#updTpl'); if(u) draft.updTpl = u.checked;
       m.querySelectorAll('#ssItems .set-row').forEach(row => { const e = draft.entries[+row.dataset.i];
         e.load = +row.querySelector(`[name=load_${row.dataset.i}]`).value || 0; e.sets = +row.querySelector('[data-f=sets]').value || 1; e.reps = +row.querySelector('[data-f=reps]').value || 1; }); };
     m.querySelector('#addExBtn').onclick = () => { pull(); const exId = m.querySelector('#addEx').value; const last = lastEntry(exId);
       draft.entries.push({ exerciseId:exId, load:last?.load||0, sets:last?.sets||3, reps:last?.reps||10 }); render(m); };
     m.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { pull(); draft.entries.splice(+b.dataset.remove,1); render(m); });
     m.querySelector('#saveSs').onclick = () => { pull();
-      if(!draft.entries.length){ toast('Adicione pelo menos um exercício'); return; }
-      if(existing){ Object.assign(existing, draft); save(); track('session_updated', { session_id:draft.id, exercise_count:draft.entries.length }); closeModal(); toast('Sessão atualizada'); route(); autoBackupAfterChange(); return; }
-      // recordes: compara com o melhor histórico ANTES de salvar
-      const prs = draft.entries.map(e => { const band = bandOf(e.reps), prev = bestByBand(e.exerciseId)[band.id];
-        return (prev && prev.load > 0 && e.load > prev.load) ? { exerciseId:e.exerciseId, name:exById(e.exerciseId)?.name, load:e.load, reps:e.reps, previous:prev.load, band, allTime: e.load > bestLoad(e.exerciseId) } : null; }).filter(Boolean);
+      const updTpl = draft.updTpl !== false && !!wk && !existing; delete draft.updTpl;
+      if(!draft.entries.length){ toast(t('add_one_ex')); return; }
+      if(existing){ Object.assign(existing, draft); save(); track('session_updated', { session_id:draft.id, exercise_count:draft.entries.length }); closeModal(); toast(t('session_updated')); route(); autoBackupAfterChange(); return; }
+      // recordes por faixa: compara com o melhor histórico ANTES de salvar
+      const prs = draft.entries.map(e => { const band = bandOf(e.reps), prev = bestByBand(e.exerciseId)[band.id], ex = exById(e.exerciseId);
+        return (prev && prev.load > 0 && e.load > prev.load) ? { exerciseId:e.exerciseId, name:exName(ex), nameEn:exNameEn(ex), load:e.load, reps:e.reps, previous:prev.load, band, allTime: e.load > bestLoad(e.exerciseId) } : null; }).filter(Boolean);
       draft.finishedAt = Date.now(); S.sessions.push(draft);
-      const updTpl = m.querySelector('#updTpl');
-      if(wk && updTpl && updTpl.checked){ wk.items.forEach(it => { const e = draft.entries.find(x=>x.exerciseId===it.exerciseId); if(e){ it.load=e.load; it.sets=e.sets; it.reps=e.reps; } }); }
+      if(updTpl){ wk.items.forEach(it => { const e = draft.entries.find(x=>x.exerciseId===it.exerciseId); if(e){ it.load=e.load; it.sets=e.sets; it.reps=e.reps; } }); }
       save(); syncPersonProps();
       const volume = draft.entries.reduce((a,e)=>a+e.load*e.sets*e.reps,0);
       track('session_completed', { session_id:draft.id, workout_id:draft.workoutId, source, exercise_count:draft.entries.length,
         total_sets:draft.entries.reduce((a,e)=>a+e.sets,0), total_volume_kg:Math.round(volume), pr_count:prs.length,
-        duration_min: Math.round((draft.finishedAt-draft.startedAt)/60000), template_updated: !!(updTpl && updTpl.checked) });
-      prs.forEach(p => track('personal_record_set', { exercise_id:p.exerciseId, exercise_name:p.name, load_kg:p.load, reps:p.reps, previous_kg:p.previous,
+        duration_min: Math.round((draft.finishedAt-draft.startedAt)/60000), template_updated: updTpl });
+      prs.forEach(p => track('personal_record_set', { exercise_id:p.exerciseId, exercise_name:p.nameEn, load_kg:p.load, reps:p.reps, previous_kg:p.previous,
         rep_range:p.band.id, rep_range_label:p.band.short, is_all_time_best:p.allTime, improvement_pct: Math.round((p.load-p.previous)/p.previous*1000)/10 }));
       closeModal(); route();
-      if(prs.length){ if(flags.prCelebration) celebrate(prs[0]); else toast(`Recorde ${prs[0].band.short} reps em ${prs[0].name}: ${fmtKg(prs[0].load)}`); }
-      else toast('Treino registrado 💪');
+      if(prs.length){ if(flags.prCelebration) celebrate(prs[0]); else toast(t('pr_toast',{b:prs[0].band.short, n:prs[0].name, kg:fmtKg(prs[0].load)})); }
+      else toast(t('workout_logged'));
       autoBackupAfterChange();
     };
-    if(existing) m.querySelector('#delSs').onclick = () => confirmBox('Excluir esta sessão do histórico?', 'Excluir', () => {
+    if(existing) m.querySelector('#delSs').onclick = () => confirmBox(t('confirm_del_ss'), t('del'), () => {
       S.sessions = S.sessions.filter(s=>s.id!==existing.id); save(); syncPersonProps(); track('session_deleted', { session_id:existing.id }); route(); });
   };
   openModal('', render);
+  modalRerender = m => { pull(); render(m); };
   if(!existing) keepScreenOn();
 }
-
 function sessionHint(e, sessionId){
   const band = bandOf(e.reps), prev = bestByBand(e.exerciseId, sessionId)[band.id];
-  if(!prev) return `faixa <b>${band.short}</b> · primeiro registro nesta faixa`;
+  if(!prev) return t('hint_first',{b:band.short});
   const beat = +e.load > prev.load;
-  return `faixa <b>${band.short}</b> · recorde ${fmtKg(prev.load)}${beat ? ' · <span style="color:var(--good);font-weight:600">novo recorde 🏆</span>' : ''}`;
+  return t('hint_rec',{b:band.short, kg:fmtKg(prev.load)}) + (beat ? ` · <span style="color:var(--good);font-weight:600">${t('new_record')}</span>` : '');
 }
 
 /* ---- exercício: detalhe + gráfico ---- */
@@ -868,24 +1150,24 @@ function openExercise(id){
   const render = (m) => {
     const best = bestLoad(id), bb = bestByBand(id);
     const hb = h.filter(x => inBand(x, band));
-    m.innerHTML = `<div class="modal-head"><h2>${esc(ex.name)}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-      <div class="row" style="margin-bottom:12px">${ex.primary.map(x=>`<span class="tag" style="border-color:var(--accent);color:var(--accent)">${MUSCLES[x].pt}</span>`).join('')}${ex.secondary.map(x=>`<span class="tag">${MUSCLES[x].pt}</span>`).join('')}</div>
+    m.innerHTML = `<div class="modal-head"><h2>${esc(exName(ex))}</h2>${closeBtn()}</div>
+      <div class="row" style="margin-bottom:12px">${ex.primary.map(x=>`<span class="tag" style="border-color:var(--accent);color:var(--accent)">${mName(x)}</span>`).join('')}${ex.secondary.map(x=>`<span class="tag">${mName(x)}</span>`).join('')}</div>
       ${h.length ? `
-      <div class="stat-row" style="margin-bottom:12px"><div class="stat"><b>${fmtKg(h[h.length-1].load)}</b><span>carga atual</span></div><div class="stat"><b>${fmtKg(best)}</b><span>maior carga</span></div><div class="stat"><b>${fmtKg(Math.max(...h.map(x=>e1rm(+x.load,+x.reps))))}</b><span>1RM estimado</span></div></div>
-      <div class="mini" style="margin:4px 0 6px">Recordes por faixa de repetições</div>
-      <table class="hist" style="margin-bottom:14px"><thead><tr><th>Faixa</th><th>Recorde</th><th>Reps</th><th>Data</th><th>1RM est.</th></tr></thead><tbody>
-        ${REP_BANDS.map(b => { const r = bb[b.id]; return `<tr${r?' class="clickable" data-band="'+b.id+'"':''} style="${band===b.id?'background:var(--accent-soft)':''}${r?';cursor:pointer':''}"><td><b>${b.short}</b> <span class="faint">${b.pt.toLowerCase()}</span></td>
+      <div class="stat-row" style="margin-bottom:12px"><div class="stat"><b>${fmtKg(h[h.length-1].load)}</b><span>${t('current_load')}</span></div><div class="stat"><b>${fmtKg(best)}</b><span>${t('top_load')}</span></div><div class="stat"><b>${fmtKg(Math.max(...h.map(x=>e1rm(+x.load,+x.reps))))}</b><span>${t('est_1rm')}</span></div></div>
+      <div class="mini" style="margin:4px 0 6px">${t('rec_by_band')}</div>
+      <table class="hist" style="margin-bottom:14px"><thead><tr><th>${t('th_range')}</th><th>${t('th_record')}</th><th>${t('reps_l')}</th><th>${t('th_date')}</th><th>${t('th_e1rm')}</th></tr></thead><tbody>
+        ${REP_BANDS.map(b => { const r = bb[b.id]; return `<tr${r?' class="clickable" data-band="'+b.id+'"':''} style="${band===b.id?'background:var(--accent-soft)':''}${r?';cursor:pointer':''}"><td><b>${b.short}</b> <span class="faint">${bandName(b).toLowerCase()}</span></td>
           ${r ? `<td class="num"><b>${fmtKg(r.load)}</b></td><td class="num">${r.reps}</td><td>${fmtDate(r.date)}</td><td class="num faint">${fmtKg(e1rm(r.load,r.reps))}</td>` : '<td class="faint" colspan="4">—</td>'}</tr>`; }).join('')}
       </tbody></table>
-      <div class="row" style="gap:6px;margin-bottom:8px;flex-wrap:nowrap;overflow-x:auto"><span class="chip ${band==='all'?'on':''}" data-band="all">Todas</span>${REP_BANDS.filter(b=>bb[b.id]).map(b=>`<span class="chip ${band===b.id?'on':''}" data-band="${b.id}" style="white-space:nowrap">${b.short}</span>`).join('')}</div>
-      <div class="row" style="margin-bottom:6px"><span class="mini" style="flex:1">${metric==='load'?'Carga por sessão (kg)':'1RM estimado — Epley (kg)'}${band==='all'?'':' · '+bandById(band).short+' reps'}</span>
-        <div class="seg"><button class="${metric==='load'?'on':''}" data-metric="load">Carga</button><button class="${metric==='e1rm'?'on':''}" data-metric="e1rm">1RM est.</button></div></div>
+      <div class="row" style="gap:6px;margin-bottom:8px;flex-wrap:nowrap;overflow-x:auto"><span class="chip ${band==='all'?'on':''}" data-band="all">${t('band_all')}</span>${REP_BANDS.filter(b=>bb[b.id]).map(b=>`<span class="chip ${band===b.id?'on':''}" data-band="${b.id}" style="white-space:nowrap">${b.short}</span>`).join('')}</div>
+      <div class="row" style="margin-bottom:6px"><span class="mini" style="flex:1">${metric==='load'?t('chart_load'):t('chart_e1rm')}${bandSuffix(band)}</span>
+        <div class="seg"><button class="${metric==='load'?'on':''}" data-metric="load">${t('seg_load')}</button><button class="${metric==='e1rm'?'on':''}" data-metric="e1rm">${t('seg_e1rm')}</button></div></div>
       <div class="chart-wrap" id="chart">${lineChart(hb.map(x=>({ date:x.date, v: metric==='load' ? +x.load : Math.round(e1rm(+x.load,+x.reps)*10)/10, label:`${x.sets}×${x.reps}` })))}<div class="tip" id="tip"></div></div>
-      <div class="mini" style="margin:16px 0 4px">Histórico</div>
-      <table class="hist"><thead><tr><th>Data</th><th>Carga</th><th>Séries × reps</th><th>1RM est.</th></tr></thead><tbody>
+      <div class="mini" style="margin:16px 0 4px">${t('history')}</div>
+      <table class="hist"><thead><tr><th>${t('th_date')}</th><th>${t('th_load')}</th><th>${t('th_setsreps')}</th><th>${t('th_e1rm')}</th></tr></thead><tbody>
         ${[...h].reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td class="num">${fmtKg(x.load)}</td><td class="num">${x.sets}×${x.reps}</td><td class="num faint">${fmtKg(e1rm(+x.load,+x.reps))}</td></tr>`).join('')}
-      </tbody></table>` : `<div class="empty"><h3>Sem registros ainda</h3>Registre este exercício para começar a acompanhar a progressão.</div>`}
-      <div class="modal-foot">${ex.custom?'<button class="btn ghost" id="editEx">Editar exercício</button><span class="spacer"></span>':''}<button class="btn primary" id="logEx">Registrar agora</button></div>`;
+      </tbody></table>` : `<div class="empty"><h3>${t('no_logs')}</h3>${t('no_logs_body')}</div>`}
+      <div class="modal-foot">${ex.custom?`<button class="btn ghost" id="editEx">${t('edit_exercise')}</button><span class="spacer"></span>`:''}<button class="btn primary" id="logEx">${t('log_now')}</button></div>`;
     m.querySelectorAll('[data-metric]').forEach(b => b.onclick = () => { metric = b.dataset.metric; track('progress_metric_changed', { metric, exercise_id:id }); render(m); });
     m.querySelectorAll('[data-band]').forEach(b => b.onclick = () => { band = (band === b.dataset.band && band !== 'all') ? 'all' : b.dataset.band; track('rep_range_filter_changed', { context:'exercise', rep_range:band, exercise_id:id }); render(m); });
     m.querySelector('#logEx').onclick = () => { closeModal(); openSession({ exerciseId:id, source:'exercise_detail' }); };
@@ -893,25 +1175,25 @@ function openExercise(id){
     bindChart(m);
   };
   openModal('', render);
-  track('exercise_progress_viewed', { exercise_id:id, exercise_name:ex.name, data_points:h.length, primary_muscles:ex.primary });
+  modalRerender = render;
+  track('exercise_progress_viewed', { exercise_id:id, exercise_name:exNameEn(ex), data_points:h.length, primary_muscles:ex.primary });
 }
 function lineChart(pts){
-  const W=560, H=220, L=44, R=14, T=14, B=28;
-  if(pts.length===1) pts = [pts[0]];
+  const W=560, H=220, L0=44, R=14, T=14, B=28;
   const vals = pts.map(p=>p.v), mn0 = Math.min(...vals), mx0 = Math.max(...vals);
   const pad = Math.max(2.5, (mx0-mn0)*0.15); const mn = Math.max(0, Math.floor((mn0-pad)/5)*5), mx = Math.ceil((mx0+pad)/5)*5;
-  const x = i => pts.length===1 ? (L+W-R)/2 : L + i*(W-L-R)/(pts.length-1);
+  const x = i => pts.length===1 ? (L0+W-R)/2 : L0 + i*(W-L0-R)/(pts.length-1);
   const y = v => T + (1-(v-mn)/((mx-mn)||1))*(H-T-B);
   const ticks = 4; const grid = Array.from({length:ticks+1},(_,i)=> mn + i*(mx-mn)/ticks);
   const xl = pts.length<=6 ? pts.map((_,i)=>i) : [0, Math.floor((pts.length-1)/2), pts.length-1];
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de progressão">
-    ${grid.map(g=>`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(g)+4}" text-anchor="end" font-size="11" fill="var(--ink-3)">${Math.round(g)}</text>`).join('')}
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('chart_aria')}">
+    ${grid.map(g=>`<line x1="${L0}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-width="1"/><text x="${L0-8}" y="${y(g)+4}" text-anchor="end" font-size="11" fill="var(--ink-3)">${Math.round(g)}</text>`).join('')}
     ${xl.map(i=>`<text x="${x(i)}" y="${H-8}" text-anchor="${pts.length===1?'middle':i===0?'start':i===pts.length-1?'end':'middle'}" font-size="11" fill="var(--ink-3)">${fmtDate(pts[i].date)}</text>`).join('')}
     <polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts.map((p,i)=>`${x(i)},${y(p.v)}`).join(' ')}"/>
     <line id="xhair" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--ink-3)" stroke-dasharray="3 3" opacity="0"/>
     ${pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`).join('')}
-    <text x="${x(pts.length-1)}" y="${y(pts[pts.length-1].v)-10}" text-anchor="${pts.length>1?'end':'middle'}" font-size="12" font-weight="700" fill="var(--ink)">${(Math.round(pts[pts.length-1].v*10)/10).toLocaleString('pt-BR')} kg</text>
-    ${pts.map((p,i)=>{ const w=(W-L-R)/Math.max(1,pts.length-1); return `<rect class="hit" data-i="${i}" data-x="${x(i)}" data-y="${y(p.v)}" data-t="${fmtDate(p.date)}|${(Math.round(p.v*10)/10).toLocaleString('pt-BR')} kg|${p.label}" x="${x(i)-w/2}" y="${T}" width="${w}" height="${H-T-B}" fill="transparent"/>`; }).join('')}
+    <text x="${x(pts.length-1)}" y="${y(pts[pts.length-1].v)-10}" text-anchor="${pts.length>1?'end':'middle'}" font-size="12" font-weight="700" fill="var(--ink)">${fmtKg(pts[pts.length-1].v)}</text>
+    ${pts.map((p,i)=>{ const w=(W-L0-R)/Math.max(1,pts.length-1); return `<rect class="hit" data-i="${i}" data-x="${x(i)}" data-y="${y(p.v)}" data-t="${fmtDate(p.date)}|${fmtKg(p.v)}|${p.label}" x="${x(i)-w/2}" y="${T}" width="${w}" height="${H-T-B}" fill="transparent"/>`; }).join('')}
   </svg>`;
 }
 function bindChart(m){
@@ -927,50 +1209,68 @@ function bindChart(m){
 function openExerciseEditor(id, presetMuscle){
   const existing = id ? exById(id) : null;
   const draft = existing ? JSON.parse(JSON.stringify(existing)) : { id:uid('ex'), name:'', primary: presetMuscle?[presetMuscle]:[], secondary:[], custom:true };
+  let nameEl = null;
   const render = (m) => {
-    m.innerHTML = `<div class="modal-head"><h2>${existing?'Editar exercício':'Novo exercício'}</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-      <label class="f">Nome<input type="text" id="exName" value="${esc(draft.name)}" placeholder="ex.: Hack squat"></label>
-      <div class="mini" style="margin:16px 0 8px">Músculos principais</div>
-      <div class="row">${MUSCLE_ORDER.map(k=>`<span class="chip ${draft.primary.includes(k)?'on':''}" data-p="${k}">${MUSCLES[k].pt}</span>`).join('')}</div>
-      <div class="mini" style="margin:16px 0 8px">Músculos secundários <span style="text-transform:none;letter-spacing:0">(contam meia série no mapa)</span></div>
-      <div class="row">${MUSCLE_ORDER.map(k=>`<span class="chip sec ${draft.secondary.includes(k)?'on':''}" data-s="${k}">${MUSCLES[k].pt}</span>`).join('')}</div>
-      <div class="modal-foot">${existing?'<button class="btn danger" id="delEx">Excluir</button><span class="spacer"></span>':''}<button class="btn ghost" data-action="close">Cancelar</button><button class="btn primary" id="saveEx">Salvar</button></div>`;
-    const nameEl = m.querySelector('#exName');
+    m.innerHTML = `<div class="modal-head"><h2>${existing?t('edit_exercise'):t('new_exercise')}</h2>${closeBtn()}</div>
+      <label class="f">${t('name')}<input type="text" id="exName" value="${esc(draft.name)}" placeholder="${t('ex_name_ph')}"></label>
+      <div class="mini" style="margin:16px 0 8px">${t('primary_muscles')}</div>
+      <div class="row">${MUSCLE_ORDER.map(k=>`<span class="chip ${draft.primary.includes(k)?'on':''}" data-p="${k}">${mName(k)}</span>`).join('')}</div>
+      <div class="mini" style="margin:16px 0 8px">${t('secondary_muscles')} <span style="text-transform:none;letter-spacing:0">${t('secondary_note')}</span></div>
+      <div class="row">${MUSCLE_ORDER.map(k=>`<span class="chip sec ${draft.secondary.includes(k)?'on':''}" data-s="${k}">${mName(k)}</span>`).join('')}</div>
+      <div class="modal-foot">${existing?`<button class="btn danger" id="delEx">${t('del')}</button><span class="spacer"></span>`:''}<button class="btn ghost" data-action="close">${t('cancel')}</button><button class="btn primary" id="saveEx">${t('save')}</button></div>`;
+    nameEl = m.querySelector('#exName');
     m.querySelectorAll('[data-p]').forEach(c => c.onclick = () => { draft.name = nameEl.value; const k=c.dataset.p; draft.primary = draft.primary.includes(k)?draft.primary.filter(x=>x!==k):[...draft.primary,k]; draft.secondary = draft.secondary.filter(x=>x!==k); render(m); });
     m.querySelectorAll('[data-s]').forEach(c => c.onclick = () => { draft.name = nameEl.value; const k=c.dataset.s; draft.secondary = draft.secondary.includes(k)?draft.secondary.filter(x=>x!==k):[...draft.secondary,k]; draft.primary = draft.primary.filter(x=>x!==k); render(m); });
     m.querySelector('#saveEx').onclick = () => { draft.name = nameEl.value.trim();
-      if(!draft.name){ nameEl.focus(); toast('Dê um nome ao exercício'); return; }
-      if(!draft.primary.length){ toast('Escolha pelo menos um músculo principal'); return; }
+      if(!draft.name){ nameEl.focus(); toast(t('name_exercise')); return; }
+      if(!draft.primary.length){ toast(t('pick_primary')); return; }
       if(existing){ Object.assign(existing, draft); track('exercise_updated', { exercise_id:draft.id }); }
       else { S.exercises.push(draft); track('exercise_created', { exercise_id:draft.id, exercise_name:draft.name, primary_muscles:draft.primary, secondary_muscles:draft.secondary, from_muscle_map: !!presetMuscle }); }
-      save(); syncPersonProps(); closeModal(); toast('Exercício salvo'); route(); };
-    if(existing) m.querySelector('#delEx').onclick = () => confirmBox(`Excluir “${esc(existing.name)}”? Registros antigos deste exercício deixam de aparecer.`, 'Excluir', () => {
+      save(); syncPersonProps(); closeModal(); toast(t('exercise_saved')); route(); };
+    if(existing) m.querySelector('#delEx').onclick = () => confirmBox(t('confirm_del_ex',{n:esc(existing.name)}), t('del'), () => {
       S.exercises = S.exercises.filter(e=>e.id!==existing.id); S.workouts.forEach(w => w.items = w.items.filter(i=>i.exerciseId!==existing.id)); save(); route(); });
   };
   openModal('', render);
+  modalRerender = m => { if(nameEl) draft.name = nameEl.value; render(m); };
 }
 
-/* ---- onboarding da primeira sessão ---- */
+/* ---- onboarding da primeira sessão: idioma → nome → como começar ---- */
 function openOnboarding(){
-  track('onboarding_started');
-  let step = 1;
+  track('onboarding_started', { default_language: LANG });
+  let step = 0;
+  const startLang = LANG;
   const finish = (next) => {
     S.settings.onboarded = true; save();
-    track('onboarding_completed', { has_name: !!S.user.name, next_step: next });
+    track('onboarding_completed', { has_name: !!S.user.name, next_step: next, language: LANG });
     closeModal();
     if(next === 'create_workout') openWorkoutEditor();
     else if(next === 'demo') loadDemo();
     else if(next === 'restore') withDrive(startRestore);
   };
   const render = (m) => {
-    if(step === 1){
+    if(step === 0){
       m.innerHTML = `<div style="text-align:center;padding:8px 4px 0">
-          <div class="brand-mark" style="width:56px;height:56px;font-size:24px;margin:0 auto 14px;border-radius:16px">LM</div>
-          <h2 style="font-size:24px;margin-bottom:6px">Bem-vindo ao LiftMap</h2>
-          <p class="muted" style="margin:0 0 18px">Registre suas cargas, veja quais músculos você treinou e acompanhe sua força ao longo do tempo.</p></div>
-        <label class="f">Como podemos te chamar?<input type="text" id="obName" placeholder="Seu nome" autocomplete="given-name" maxlength="40" value="${esc(S.user.name)}"></label>
-        <p class="faint" style="font-size:12.5px;margin:8px 0 0">Seus treinos ficam neste aparelho. O nome serve para personalizar o app e identificar seu uso nas métricas do produto.</p>
-        <div class="modal-foot"><button class="btn ghost" id="obSkip">Pular</button><button class="btn primary" id="obNext">Continuar</button></div>`;
+          <div class="brand-mark" style="width:56px;height:56px;font-size:22px;margin:0 auto 14px;border-radius:16px">ST</div>
+          <h2 style="font-size:24px;margin-bottom:6px">${t('ob_lang_title')}</h2>
+          <p class="muted" style="margin:0 0 18px">${t('ob_lang_sub')}</p></div>
+        <div class="lang-seg" role="radiogroup" aria-label="${t('language')}">
+          <button role="radio" aria-checked="${LANG==='en'}" class="${LANG==='en'?'on':''}" data-ob-lang="en"><span>🇺🇸</span>English</button>
+          <button role="radio" aria-checked="${LANG==='pt'}" class="${LANG==='pt'?'on':''}" data-ob-lang="pt"><span>🇧🇷</span>Português</button>
+        </div>
+        <div class="modal-foot"><button class="btn primary" id="obLangNext">${t('continue')}</button></div>`;
+      m.querySelectorAll('[data-ob-lang]').forEach(b => b.onclick = () => { setLang(b.dataset.obLang, 'onboarding_preview'); route(); render(m); });
+      m.querySelector('#obLangNext').onclick = () => {
+        track('onboarding_language_step_completed', { language: LANG, changed_from_default: LANG !== startLang });
+        setLang(LANG, 'onboarding'); step = 1; render(m);
+      };
+    } else if(step === 1){
+      m.innerHTML = `<div style="text-align:center;padding:8px 4px 0">
+          <div class="brand-mark" style="width:56px;height:56px;font-size:22px;margin:0 auto 14px;border-radius:16px">ST</div>
+          <h2 style="font-size:24px;margin-bottom:6px">${t('ob_welcome')}</h2>
+          <p class="muted" style="margin:0 0 18px">${t('ob_pitch')}</p></div>
+        <label class="f">${t('ob_name_q')}<input type="text" id="obName" placeholder="${t('ob_name_ph')}" autocomplete="given-name" maxlength="40" value="${esc(S.user.name)}"></label>
+        <p class="faint" style="font-size:12.5px;margin:8px 0 0">${t('ob_name_note')}</p>
+        <div class="modal-foot"><button class="btn ghost" id="obSkip">${t('skip')}</button><button class="btn primary" id="obNext">${t('continue')}</button></div>`;
       const inp = m.querySelector('#obName'); setTimeout(() => inp.focus(), 50);
       const next = (skipped) => {
         const n = skipped ? '' : inp.value.trim();
@@ -983,52 +1283,57 @@ function openOnboarding(){
       inp.addEventListener('keydown', e => { if(e.key === 'Enter') next(false); });
     } else {
       const opt = (id, title, sub, primary) => `<button class="btn ${primary?'primary':''}" data-ob="${id}" style="width:100%;justify-content:flex-start;padding:14px;text-align:left;white-space:normal"><span><b style="display:block">${title}</b><span style="font-weight:500;font-size:13px;opacity:.8">${sub}</span></span></button>`;
-      m.innerHTML = `<div class="modal-head"><h2>${S.user.name ? `Bora, ${esc(S.user.name)}! 💪` : 'Como quer começar?'}</h2></div>
+      m.innerHTML = `<div class="modal-head"><h2>${S.user.name ? t('ob_hi',{n:esc(S.user.name)}) : t('ob_how')}</h2></div>
         <div class="grid">
-          ${opt('create_workout','Criar meu primeiro treino','Ex.: Treino A — Pernas, com exercícios, séries e carga atual', true)}
-          ${DRIVE_ENABLED ? opt('restore','Restaurar do Google Drive','Já usava o LiftMap em outro aparelho') : ''}
-          ${opt('demo','Explorar com dados de exemplo','8 semanas de treinos fictícios para ver o mapa e os gráficos')}
+          ${opt('create_workout', t('ob_create'), t('ob_create_sub'), true)}
+          ${DRIVE_ENABLED ? opt('restore', t('restore_drive'), t('ob_restore_sub')) : ''}
+          ${opt('demo', t('ob_demo'), t('ob_demo_sub'))}
         </div>
-        <div class="modal-foot"><button class="btn ghost" data-ob="explore">Agora não</button></div>`;
+        <div class="modal-foot"><button class="btn ghost" data-ob="explore">${t('not_now')}</button></div>`;
       m.querySelectorAll('[data-ob]').forEach(b => b.onclick = () => finish(b.dataset.ob));
     }
   };
   openModal('', render);
+  modalRerender = render;
 }
 
 /* ---- debug PostHog ---- */
 function openDebug(){
-  const ph = PH();
-  openModal(`<div class="modal-head"><h2>Eventos do PostHog</h2><button class="btn icon ghost" data-action="close" aria-label="Fechar">✕</button></div>
-    <p class="muted" style="margin-top:0">${ph ? 'Conectado. Os eventos abaixo foram enviados nesta aba — confira em <b>Activity</b> no PostHog.' : 'PostHog <b>não configurado</b>: cole o token do projeto no topo do index.html. Os eventos abaixo ficam só neste painel.'}</p>
-    ${ph ? `<div class="row" style="margin-bottom:8px"><span class="tag">distinct_id: ${esc(String((ph.get_distinct_id && ph.get_distinct_id()) || 'carregando…'))}</span><span class="tag">flag pr-celebration: ${flags.prCelebration?'on':'off'}</span></div>` : ''}
-    <div id="dbgList"></div>`);
-  renderDebugList();
+  const render = (m) => {
+    const ph = PH();
+    m.innerHTML = `<div class="modal-head"><h2>${t('dbg_title')}</h2>${closeBtn()}</div>
+      <p class="muted" style="margin-top:0">${ph ? t('dbg_on') : t('dbg_off')}</p>
+      ${ph ? `<div class="row" style="margin-bottom:8px"><span class="tag">distinct_id: ${esc(String((ph.get_distinct_id && ph.get_distinct_id()) || t('loading')))}</span><span class="tag">flag pr-celebration: ${flags.prCelebration?'on':'off'}</span><span class="tag">ui_language: ${LANG}</span></div>` : ''}
+      <div id="dbgList"></div>`;
+    renderDebugList();
+  };
+  openModal('', render);
+  modalRerender = render;
 }
 function renderDebugList(){
   const el = document.getElementById('dbgList'); if(!el) return;
-  el.innerHTML = eventLog.length ? eventLog.map(e=>`<div class="dbg-ev"><span class="faint">${e.at}</span> <b>${esc(e.event)}</b><pre>${esc(JSON.stringify(e.props))}</pre></div>`).join('') : '<p class="faint">Nenhum evento ainda. Use o app e volte aqui.</p>';
+  el.innerHTML = eventLog.length ? eventLog.map(e=>`<div class="dbg-ev"><span class="faint">${e.at}</span> <b>${esc(e.event)}</b><pre>${esc(JSON.stringify(e.props))}</pre></div>`).join('') : `<p class="faint">${t('dbg_empty')}</p>`;
 }
 
-/* ---- backup / demo ---- */
+/* ---- backup local / demo ---- */
 function exportBackup(){
   const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `liftmap-backup-${todayISO()}.json`; document.body.appendChild(a); a.click(); a.remove();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `strtracker-backup-${todayISO()}.json`; document.body.appendChild(a); a.click(); a.remove();
   track('data_exported', { sessions_count:S.sessions.length });
 }
 function importBackup(ev){
   const f = ev.target.files[0]; if(!f) return;
-  f.text().then(t => { const d = JSON.parse(t); if(!d || d.version!==1 || !Array.isArray(d.sessions)) throw new Error('formato');
-    d.user = S.user; const st = S.settings; S = migrate(d); S.settings = st; save(); syncPersonProps(); track('data_imported', { sessions_count:S.sessions.length }); toast('Backup importado'); route(); })
-   .catch(() => toast('Arquivo inválido'));
+  f.text().then(txt => { const d = JSON.parse(txt); if(!d || d.version!==1 || !Array.isArray(d.sessions)) throw new Error('format');
+    d.user = S.user; const st = S.settings; S = migrate(d); S.settings = st; save(); syncPersonProps(); track('data_imported', { sessions_count:S.sessions.length }); toast(t('import_ok')); route(); })
+   .catch(() => toast(t('invalid_file')));
 }
 function loadDemo(){
   const plan = [
-    { name:'Treino A — Pernas', items:[['ex_leg-press-45',3,10,160,10],['ex_agachamento-livre',4,8,60,2.5],['ex_cadeira-extensora',3,12,40,2.5],['ex_mesa-flexora',3,12,35,2.5],['ex_panturrilha-em-pe',4,15,60,5]] },
-    { name:'Treino B — Peito e tríceps', items:[['ex_supino-reto-barra',4,8,50,2.5],['ex_supino-inclinado-halteres',3,10,20,1],['ex_crucifixo-peck-deck',3,12,35,2.5],['ex_triceps-corda-polia',3,12,25,1.25]] },
-    { name:'Treino C — Costas e bíceps', items:[['ex_puxada-frontal-pulldown',4,10,50,2.5],['ex_remada-baixa-cabo',3,10,45,2.5],['ex_rosca-direta',3,10,24,1],['ex_abdominal-na-polia',3,15,30,2.5]] },
+    { key:'demo_a', items:[['ex_leg-press-45',3,10,160,10],['ex_agachamento-livre',4,8,60,2.5],['ex_cadeira-extensora',3,12,40,2.5],['ex_mesa-flexora',3,12,35,2.5],['ex_panturrilha-em-pe',4,15,60,5]] },
+    { key:'demo_b', items:[['ex_supino-reto-barra',4,8,50,2.5],['ex_supino-inclinado-halteres',3,10,20,1],['ex_crucifixo-peck-deck',3,12,35,2.5],['ex_triceps-corda-polia',3,12,25,1.25]] },
+    { key:'demo_c', items:[['ex_puxada-frontal-pulldown',4,10,50,2.5],['ex_remada-baixa-cabo',3,10,45,2.5],['ex_rosca-direta',3,10,24,1],['ex_abdominal-na-polia',3,15,30,2.5]] },
   ];
-  const workouts = plan.map(p => ({ id:uid('wk'), name:p.name, createdAt:Date.now(), items:p.items.map(([exerciseId,sets,reps,load])=>({exerciseId,sets,reps,load})) }));
+  const workouts = plan.map(p => ({ id:uid('wk'), name:t(p.key), nameKey:p.key, createdAt:Date.now(), items:p.items.map(([exerciseId,sets,reps,load])=>({exerciseId,sets,reps,load})) }));
   const sessions = []; const start = new Date(); start.setDate(start.getDate() - 7*8 + 1);
   for(let week=0; week<8; week++) plan.forEach((p,pi) => {
     const d = new Date(start); d.setDate(d.getDate() + week*7 + pi*2);
@@ -1041,21 +1346,29 @@ function loadDemo(){
         if(week % 4 === 2 && exerciseId === 'ex_cadeira-extensora') return { exerciseId, sets, reps:15, load: Math.round(base*0.8/2.5)*2.5 };
         return { exerciseId, sets, reps, load:base }; }) });
   });
-  workouts.forEach((w,pi) => { const last = sessions.filter(s=>s.workoutId===w.id).pop(); if(last) w.items.forEach(it => { const e = last.entries.find(x=>x.exerciseId===it.exerciseId); if(e) it.load = e.load; }); });
+  workouts.forEach(w => { const last = sessions.filter(s=>s.workoutId===w.id).pop(); if(last) w.items.forEach(it => { const e = last.entries.find(x=>x.exerciseId===it.exerciseId); if(e) it.load = e.load; }); });
   S.workouts.push(...workouts); S.sessions.push(...sessions); save(); syncPersonProps();
   track('demo_data_loaded', { sessions_added:sessions.length, workouts_added:workouts.length });
-  toast('8 semanas de exemplo carregadas'); location.hash = '#mapa'; route();
+  toast(t('demo_loaded')); location.hash = '#mapa'; route();
 }
 
 /* ---------------- 7) ROTAS E EVENTOS ---------------- */
 const ROUTES = { mapa:viewMapa, treinos:viewTreinos, historico:viewHistorico, exercicios:viewExercicios };
+const SCREEN_EN = { mapa:'map', treinos:'workouts', historico:'progress', exercicios:'exercises' };
 let lastScreen = null;
 function route(){
   const name = (location.hash||'').replace('#','') || 'mapa';
   const fn = ROUTES[name] || viewMapa; const screen = ROUTES[name] ? name : 'mapa';
   document.querySelectorAll('nav.tabs a').forEach(a => a.classList.toggle('active', a.dataset.tab === screen));
   fn();
-  if(screen !== lastScreen){ track('screen_viewed', { screen }); lastScreen = screen; }
+  if(screen !== lastScreen){ track('screen_viewed', { screen: SCREEN_EN[screen] }); lastScreen = screen; }
+}
+function switchLang(lang, source){
+  document.querySelectorAll('.toast').forEach(x => x.remove());
+  setLang(lang, source);
+  route();
+  const m = layer().querySelector('.modal');
+  if(m && modalRerender) modalRerender(m); else if(m) closeModal();
 }
 window.addEventListener('hashchange', () => { closeModal(); route(); window.scrollTo(0,0); });
 
@@ -1065,13 +1378,15 @@ document.addEventListener('click', ev => {
   const el = ev.target.closest('[data-action]');
   const mEl = ev.target.closest('.m');
   if(mEl && !el){ const m = mEl.dataset.m; ui.selected = (ui.selected === m) ? null : m; viewMapa();
-    if(ui.selected) { track('muscle_selected', { muscle:m, view: mEl.closest('svg').getAttribute('aria-label').includes('frontal') ? 'front' : 'back', range_days:ui.range });
+    if(ui.selected) { track('muscle_selected', { muscle:m, view: mEl.closest('svg').dataset.view, range_days:ui.range, rep_range:ui.band });
       if(window.innerWidth < 820) document.getElementById('musclePanel').scrollIntoView({behavior:'smooth', block:'start'}); }
     return; }
   if(!el) return;
   const a = el.dataset.action;
   if(a === 'scrim'){ if(ev.target === el){ if(!S.settings.onboarded){ S.settings.onboarded = true; save(); track('onboarding_dismissed'); } closeModal(); } return; }
   if(a === 'close') return closeModal();
+  if(a === 'toggle-lang') return switchLang(LANG === 'en' ? 'pt' : 'en', 'header');
+  if(a === 'set-lang') return switchLang(el.dataset.lang, 'settings');
   if(a === 'band'){ ui.band = el.dataset.band; track('rep_range_filter_changed', { context:'map', rep_range:ui.band }); return viewMapa(); }
   if(a === 'range'){ ui.range = +el.dataset.days; track('heatmap_range_changed', { range_days:ui.range }); return viewMapa(); }
   if(a === 'new-workout') return openWorkoutEditor();
@@ -1090,18 +1405,19 @@ document.addEventListener('click', ev => {
   if(a === 'demo') return loadDemo();
   if(a === 'save-name'){ const n = document.getElementById('userName').value.trim(); S.user.name = n; save();
     identifyUser();
-    track('profile_updated', { has_name: !!n }); return toast(n ? `Olá, ${n}!` : 'Nome removido'); }
-  if(a === 'reset') return confirmBox('Apagar todos os treinos, sessões e exercícios personalizados deste navegador?', 'Apagar tudo', () => {
+    track('profile_updated', { has_name: !!n }); return toast(n ? t('hello',{n}) : t('name_removed')); }
+  if(a === 'reset') return confirmBox(t('confirm_reset'), t('delete_all'), () => {
     const user = S.user, st = S.settings; S = migrate(freshState()); S.user = user; S.settings = st; save(); syncPersonProps(); track('data_reset'); route(); });
 });
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
 initAnalytics();
+applyStatic();
 loadGIS();
 route();
 renderDriveStatus();
 if(!S.settings.onboarded) openOnboarding();
-// PWA: cache offline (só em https, ex.: GitHub Pages)
+// PWA: cache offline (https, ex.: GitHub Pages; ou localhost para testar)
 if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }

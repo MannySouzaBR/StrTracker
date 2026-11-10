@@ -1,8 +1,8 @@
 {
-  "name": "LiftMap — progressão de carga",
-  "short_name": "LiftMap",
-  "description": "Mapa corporal, treinos salvos e log de progressão de carga.",
-  "lang": "pt-BR",
+  "name": "StrTracker — strength progress tracker",
+  "short_name": "StrTracker",
+  "description": "Body map, saved workouts and a strength log by rep range. / Mapa corporal, treinos salvos e log de força por faixa de repetições.",
+  "lang": "en",
   "start_url": "./#mapa",
   "scope": "./",
   "display": "standalone",

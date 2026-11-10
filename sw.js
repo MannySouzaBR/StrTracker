@@ -1,6 +1,6 @@
-/* LiftMap service worker — deixa o app abrir sem internet (academia com sinal ruim).
+/* StrTracker service worker — deixa o app abrir sem internet (academia com sinal ruim).
    Ao publicar uma versão nova, aumente CACHE para forçar a atualização. */
-const CACHE = 'liftmap-v1.3.0';
+const CACHE = 'strtracker-v2.0.0';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
