@@ -258,7 +258,7 @@
    STR tem SEMPRE [inglês, português] — uma mudança nova só entra com os dois.
    Eventos e propriedades do PostHog ficam em inglês, independentes da UI.
    ================================================================= */
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 const STORE_KEY = 'liftmap:v1';   // nome antigo de propósito: trocar apagaria os dados já salvos
 
 /* ---------------- 0) I18N ---------------- */
@@ -1224,17 +1224,22 @@ function openSession({ workoutId=null, sessionId=null, exerciseId=null, repeatFr
     m.querySelector('#saveSs').onclick = () => { pull();
       const updTpl = draft.updTpl !== false && !!wk && !existing; delete draft.updTpl;
       if(!draft.entries.length){ toast(t('add_one_ex')); return; }
-      if(existing){ Object.assign(existing, draft); save(); track('session_updated', { session_id:draft.id, exercise_count:draft.entries.length }); closeModal(); toast(t('session_updated')); route(); autoBackupAfterChange(); return; }
+      if(existing){ Object.assign(existing, draft); save(); track('session_updated', { session_id:draft.id, exercise_count:draft.entries.length, exercises: draft.entries.map(e => exercisePayload(e)) }); closeModal(); toast(t('session_updated')); route(); autoBackupAfterChange(); return; }
       // recordes por faixa: compara com o melhor histórico ANTES de salvar
       const prs = draft.entries.map(e => { const band = bandOf(e.reps), prev = bestByBand(e.exerciseId)[band.id], ex = exById(e.exerciseId);
         return (prev && prev.load > 0 && e.load > prev.load) ? { exerciseId:e.exerciseId, name:exName(ex), nameEn:exNameEn(ex), load:e.load, reps:e.reps, previous:prev.load, band, allTime: e.load > bestLoad(e.exerciseId) } : null; }).filter(Boolean);
+      const prIdSet = new Set(prs.map(p => p.exerciseId));
       draft.finishedAt = Date.now(); S.sessions.push(draft);
       if(updTpl){ wk.items.forEach(it => { const e = draft.entries.find(x=>x.exerciseId===it.exerciseId); if(e){ it.load=e.load; it.sets=e.sets; it.reps=e.reps; } }); }
       save(); syncPersonProps();
       const volume = draft.entries.reduce((a,e)=>a+e.load*e.sets*e.reps,0);
       track('session_completed', { session_id:draft.id, workout_id:draft.workoutId, source, exercise_count:draft.entries.length,
         total_sets:draft.entries.reduce((a,e)=>a+e.sets,0), total_volume_kg:Math.round(volume), pr_count:prs.length,
-        duration_min: Math.round((draft.finishedAt-draft.startedAt)/60000), template_updated: updTpl });
+        duration_min: Math.round((draft.finishedAt-draft.startedAt)/60000), template_updated: updTpl,
+        session_date: draft.date, muscle_groups: [...new Set(draft.entries.flatMap(e => exById(e.exerciseId)?.primary || []))],
+        exercises: draft.entries.map(e => exercisePayload(e, prIdSet)) });
+      // um evento por exercício: permite Trends/breakdowns por exercício sem precisar de SQL
+      draft.entries.forEach(e => track('exercise_logged', { session_id:draft.id, workout_id:draft.workoutId, source, session_date:draft.date, ...exercisePayload(e, prIdSet) }));
       prs.forEach(p => track('personal_record_set', { exercise_id:p.exerciseId, exercise_name:p.nameEn, load_kg:p.load, reps:p.reps, previous_kg:p.previous,
         rep_range:p.band.id, rep_range_label:p.band.short, is_all_time_best:p.allTime, improvement_pct: Math.round((p.load-p.previous)/p.previous*1000)/10 }));
       closeModal(); route();
@@ -1248,6 +1253,15 @@ function openSession({ workoutId=null, sessionId=null, exerciseId=null, repeatFr
   openModal('', render);
   modalRerender = m => { pull(); render(m); };
   if(!existing) keepScreenOn();
+}
+/* Payload por exercício para o PostHog (nomes em inglês; números como número, para somar/maximizar em SQL).
+   Vai como array `exercises` no session_completed/updated e como um evento exercise_logged por exercício. */
+function exercisePayload(e, prIds){
+  const ex = exById(e.exerciseId), band = bandOf(e.reps);
+  return { exercise_id:e.exerciseId, exercise_name:exNameEn(ex), exercise_source:exSource(ex),
+    primary_muscle:(ex && ex.primary[0]) || null, muscles:ex ? ex.primary : [], secondary_muscles:ex ? ex.secondary : [], equipment:(ex && ex.equipment) || null,
+    sets:+e.sets, reps:+e.reps, load_kg:+e.load, volume_kg:Math.round(e.load*e.sets*e.reps), est_1rm_kg:Math.round(e1rm(+e.load,+e.reps)*10)/10,
+    rep_range:band.id, rep_range_label:band.short, is_pr: !!(prIds && prIds.has(e.exerciseId)) };
 }
 function sessionHint(e, sessionId){
   const band = bandOf(e.reps), prev = bestByBand(e.exerciseId, sessionId)[band.id];

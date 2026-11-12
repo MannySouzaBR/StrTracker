@@ -1,6 +1,6 @@
 /* StrTracker service worker — deixa o app abrir sem internet (academia com sinal ruim).
    Ao publicar uma versão nova, aumente CACHE para forçar a atualização. */
-const CACHE = 'strtracker-v2.1.0';
+const CACHE = 'strtracker-v2.2.0';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './data/exercises.json'];
 
 self.addEventListener('install', e => {
